@@ -22,7 +22,7 @@ Sketch.create({
     this.fillRect(0, 0, this.width, this.height);
     this.player.draw(this);
     this.aim.draw(this);
-  }
+  },
 });
 
 document.addEventListener('mousemove', onMouseMove);
