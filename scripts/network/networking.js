@@ -13,10 +13,11 @@ function setup_peer(){
 
     peer.on('connection', function(conn) {
         //Push the new connection to a list
+        console.log("New connection: ", conn.connectionId)
+        connections.push(conn)
+
+        //Handle incoming traffic
         conn.on('data', function(data){
-            if(data)
-            console.log("New connection: ", conn.connectionId)
-            connections.push(conn)
             console.log(data);
         });
 
