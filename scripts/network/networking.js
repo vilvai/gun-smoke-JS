@@ -5,11 +5,14 @@ let isHost = false
 let isClient = false
 //Connections are other people connected to you
 let connections = []
+let playerByconnectionId = {}
 let peer = null
 
 //Setup peer and all it's event handlers
 function setup_peer(){
+    ctx.spawn()
     let peer = new Peer({key: 'peerjs', host: 'gunsmok.herokuapp.com', secure: true, port: 443});
+
     peer.on('error', function(err) {
         alert("Peer.js " + err)
         isClient = false
@@ -17,6 +20,7 @@ function setup_peer(){
             isHost = false
             host = null
             connections = []
+            playerByconnectionId = {}
         }
     })
     console.log(peer)
@@ -47,6 +51,7 @@ function setup_peer(){
         //Push the new connection to a list
         console.log("New connection: ", conn.connectionId)
         connections.push(conn)
+        playerByconnectionId[conn.connectionId] = ctx.spawn()
 
         //Handle incoming traffic
         conn.on('data', function(data){
@@ -65,11 +70,22 @@ function setup_peer(){
     return peer
 }
 
+function send_to_clients(data){
+    connections.forEach(conn=>{
+        conn.send(data)
+    })
+}
+
 //What does a host do when client disconnects
 function disconnect_conn(conn){
     //Remove connection from the list
     console.log(conn.connectionId + " has left")
     conn.close()
+
+    conn_keys = Object.keys(playerByconnectionId)
+    conn_keys.forEach(current_conn => {
+        if(current_conn == conn.connectionId) delete playerByconnectionId[current_conn]
+    });
     connections = connections.filter((current_conn)=>current_conn.connectionId != conn.connectionId)
 }
 
