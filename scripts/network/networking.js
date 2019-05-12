@@ -36,29 +36,31 @@ function setup_peer(){
 
 
 function connect_to_host(host_id){
-    console.log("Connecting to host: " + host_id)
+    if(!host){
+        
+        console.log("Connecting to host: " + host_id)
+        let conn = peer.connect(host_id)
+        //On open will be launch when you successfully connect to PeerServer
+        conn.on('open', function(){
+            console.log("Connection succesful")
+            //Send ok to the host
+            conn.send('ok')
+            host = conn
+        })
 
-    let conn = peer.connect(host_id)
-    //On open will be launch when you successfully connect to PeerServer
-    conn.on('open', function(){
-        console.log("Connection succesful")
-        //Send ok to the host
-        conn.send('ok')
-        host = conn
-    })
-
-    conn.on('close', function() {
-        host = null
-        alert("Host closed connection")
-        console.log("Host closed connection")
-    })
+        conn.on('close', function() {
+            host = null
+            alert("Host closed connection")
+            console.log("Host closed connection")
+        })
+    }
 }
 
 
 //TODO fuusioi tää saman eventin kanssa joka piirtää viivaa?
 //https://stackoverflow.com/questions/7790725/javascript-track-mouse-position
 function handleMouseMove(event) {
-    if(host)
+    if(host && host!=peer.id)
         host.send(
             JSON.stringify(
                 {mouse_move:
@@ -70,7 +72,7 @@ function handleMouseMove(event) {
 }
 
 function handleMouseClick(){
-    if(host)
+    if(host && host!=peer.id)
         host.send(
             JSON.stringify(
                 {mouse_click:
