@@ -23,7 +23,7 @@ class Player {
     return this.y + this.height / 2;
   }
 
-  update(keys, mouseX, mouseY) {
+  update(keys, platforms, mouseX, mouseY) {
     if (keys.RIGHT) {
       this.moveRight();
     } else if (keys.LEFT) {
@@ -32,15 +32,28 @@ class Player {
       this.xSpeed *= 1 - this.drag;
       if (Math.abs(this.xSpeed) < 0.1) this.xSpeed = 0;
     }
-    if (keys.UP && !this.isJumping) {
+    if (keys.SPACE && !this.isJumping) {
       this.jump();
     }
-    if (this.y + this.ySpeed > 600) {
-      this.y = 600;
+    this.ySpeed += this.gravity;
+
+    var collisions = this.collision(platforms);
+    if (collisions[0] && this.ySpeed > 0) {
+      this.y = collisions[0].y - this.height;
       this.ySpeed = 0;
       this.isJumping = false;
-    } else {
-      this.ySpeed += this.gravity;
+    }
+    if (collisions[1] && this.ySpeed < 0) {
+      this.y = collisions[1].y + collisions[1].height;
+      this.ySpeed = 0;
+    }
+    if (collisions[2] && this.xSpeed > 0) {
+      this.x = collisions[2].x - this.width;
+      this.xSpeed = 0;
+    }
+    if (collisions[3] && this.xSpeed < 0) {
+      this.x = collisions[3].x + collisions[3].width;
+      this.xSpeed = 0;
     }
     this.y += this.ySpeed;
     this.x += this.xSpeed;
@@ -68,6 +81,49 @@ class Player {
   jump() {
     this.ySpeed = -this.jumpPower;
     this.isJumping = true;
+  }
+
+  collision(platforms) {
+    var bottom = this.y + this.height;
+    var top = this.y;
+    var left = this.x;
+    var right = this.x + this.width;
+    var ret = [false, false, false, false];
+
+    platforms.forEach(i => {
+      if (
+        i.x < right &&
+        left < i.x + i.width &&
+        i.y <= bottom + this.ySpeed &&
+        bottom + this.ySpeed <= i.y + 20
+      ) {
+        ret[0] = i; // bottom collision
+      } else if (
+        i.x < right &&
+        left < i.x + i.width &&
+        i.y + i.height >= top + this.ySpeed &&
+        top + this.ySpeed >= i.y + i.height - 20
+      ) {
+        ret[1] = i; // top collision
+      }
+
+      if (
+        i.x <= right + this.xSpeed &&
+        right + this.xSpeed <= i.x + 20 &&
+        i.y < bottom &&
+        top < i.y + i.height
+      ) {
+        ret[2] = i; // right collision
+      } else if (
+        i.x + i.width - 20 <= left + this.xSpeed &&
+        left + this.xSpeed <= i.x + i.width &&
+        i.y < bottom &&
+        top < i.y + i.height
+      ) {
+        ret[3] = i; // left collision
+      }
+    });
+    return ret;
   }
 
   draw(context) {
