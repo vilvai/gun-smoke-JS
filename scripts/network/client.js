@@ -23,12 +23,10 @@ function connect_to_host(host_id){
     })
 
     conn.on('close', function() {
-        if(!host && isClient)
-            disconnect_host(conn)
+        disconnect_host(conn)
     })
     conn.on('disconnect', function() {
-        if(!host && isClient)
-            disconnect_host(conn)
+        disconnect_host(conn)
     })
 }
 
