@@ -49,6 +49,7 @@ function setup_peer(){
         //Push the new connection to a list
         console.log("New connection: ", conn.connectionId)
         connections.push(conn)
+        //TODO DO THIS ONLY WHEN CONNECTION IS SUCCESSFULL
         playerByconnectionId[conn.connectionId] = ctx.spawn()
 
         //Handle incoming traffic
