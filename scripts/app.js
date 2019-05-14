@@ -29,7 +29,7 @@ ctx.update = ()=>{
                   y:x.y
                 }
     })
-    send_to_clients(data)
+    //send_to_clients(data)
 }
 
 
@@ -44,8 +44,9 @@ ctx.draw = ()=> {
 
 ctx.spawn = ()=>{
     let player = new Player(100,40, 40, this.width / 4)
-    players.push(player)
-  return player
+    p_index = players.push(player) - 1
+    console.log(p_index)
+    return p_index
 }
 
 document.addEventListener("mousemove", onMouseMove);
