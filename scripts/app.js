@@ -13,19 +13,17 @@ Sketch.create({
     this.platforms = [
       new Platform(50, 300, 200, 700),
       new Platform(50, 300, 700, 700),
-      new Platform(50, 300, 1040, 700),
-      new Platform(500, 50, 1300, 200),
+      new Platform(50, 1000, 1048, 700),
       new Platform(50, 300, 700, 450)
     ];
+    this.camera = new Camera(this.player, this.platforms);
   },
   update() {
     this.player.update(this.keys, this.platforms, this.height, mouseX, mouseY);
   },
   draw() {
     this.fillStyle = "#ccc";
-    this.fillRect(0, 0, this.width, this.height);
-    this.platforms.forEach(x => x.draw(this));
-    this.player.draw(this);
+    this.camera.draw(this);
   }
 });
 
