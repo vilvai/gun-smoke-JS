@@ -3,11 +3,13 @@
   <head>
     <meta charset="utf-8">
     <title>Tasohyppely</title>
+    <link rel="stylesheet" href="styles.css">
   </head>
-  <body style="margin: 0; overflow: hidden; cursor: none">
-    <div id="container">
-      <button id="connect-to-btn">Yhistä</button>
-      <button id="host-btn">hoistaa</button>
+  <body>
+    <div id="sketch-container"></div>
+    <div class="network-container">
+      <button id="connect-to-btn">Connect</button>
+      <button id="host-btn">Host</button>
       <p id="host-id"></p>
       <input id="connect-to-text" type="text" name="peer-id">
     </div>
@@ -19,6 +21,5 @@
     <script src="./scripts/network/util.js"></script>
     <script src="./scripts/network/host.js"></script>
     <script src="./scripts/network/client.js"></script>
-
   </body>
 </html>
