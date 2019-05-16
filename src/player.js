@@ -147,12 +147,12 @@ class Player {
   }
 
   draw(context) {
-    context.fillStyle = "#000";
+    context.fillStyle = '#000';
     context.fillRect(this.x, this.y, this.width, this.height);
 
     if (this.mouseX) {
       context.lineWidth = 1;
-      context.strokeStyle = "#f00";
+      context.strokeStyle = '#f00';
       context.beginPath();
       context.moveTo(this.getCenterX(), this.getCenterY());
       context.lineTo(this.mouseX, this.mouseY);
@@ -172,7 +172,7 @@ class Player {
       }
 
       context.lineWidth = 15;
-      context.strokeStyle = "#000";
+      context.strokeStyle = '#000';
       context.beginPath();
       context.moveTo(this.getCenterX(), this.getCenterY());
       context.lineTo(
