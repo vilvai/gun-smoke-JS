@@ -23,7 +23,7 @@ class Player {
   }
 
   update(keys, platforms, windowHeight, mouseX, mouseY) {
-    var collisions = this.collision(platforms);
+    const collisions = this.collision(platforms);
     if (keys.RIGHT) {
       this.moveRight(collisions);
     } else if (keys.LEFT) {
@@ -104,11 +104,11 @@ class Player {
   }
 
   collision(platforms) {
-    var bottom = this.y + this.height;
-    var top = this.y;
-    var left = this.x;
-    var right = this.x + this.width;
-    var ret = [false, false, false, false];
+    const bottom = this.y + this.height;
+    const top = this.y;
+    const left = this.x;
+    const right = this.x + this.width;
+    const ret = [false, false, false, false];
 
     platforms.forEach(i => {
       if (
@@ -163,8 +163,8 @@ class Player {
 
       const angle = Math.atan(deltaY / deltaX);
 
-      let armEndX = Math.cos(angle);
-      let armEndY = Math.sin(angle);
+      let armEndX = Math.cos(angle) * this.armLength;
+      let armEndY = Math.sin(angle) * this.armLength;
 
       if (deltaX < 0) {
         armEndX = -armEndX;
@@ -175,10 +175,7 @@ class Player {
       context.strokeStyle = '#000';
       context.beginPath();
       context.moveTo(this.getCenterX(), this.getCenterY());
-      context.lineTo(
-        this.getCenterX() + armEndX * this.armLength,
-        this.getCenterY() + armEndY * this.armLength
-      );
+      context.lineTo(this.getCenterX() + armEndX, this.getCenterY() + armEndY);
       context.stroke();
     }
   }
