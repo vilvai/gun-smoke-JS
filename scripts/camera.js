@@ -9,7 +9,7 @@ class Camera {
 
     var xPlayer = context.width / 2 - this.player.width / 2;
     var yPlayer = context.height / 2 - this.player.height / 2;
-    context.fillStyle = "#f00";
+    context.fillStyle = '#f00';
     context.fillRect(xPlayer, yPlayer, this.player.width, this.player.height);
     var dx = xPlayer - this.player.x;
     var dy = yPlayer - this.player.y;
