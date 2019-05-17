@@ -1,4 +1,4 @@
-class Player {
+export default class Player {
   constructor(height, width, x) {
     this.height = height;
     this.width = width;
@@ -24,10 +24,10 @@ class Player {
   }
 
   update(keys, platforms, windowHeight, mouseX, mouseY) {
-    var collisions = this.collision(platforms);
-    if (keys.RIGHT) {
+    const collisions = this.collision(platforms);
+    if (keys.D) {
       this.moveRight(collisions);
-    } else if (keys.LEFT) {
+    } else if (keys.A) {
       this.moveLeft(collisions);
     } else if (collisions[0]) {
       this.xSpeed *= 1 - this.drag;
@@ -36,7 +36,7 @@ class Player {
       this.xSpeed *= 1 - this.drag / 8;
     }
     if (Math.abs(this.xSpeed) < 0.1) this.xSpeed = 0;
-    if (keys.SPACE) {
+    if (keys.W) {
       this.jump(collisions);
     }
 
@@ -97,11 +97,11 @@ class Player {
   }
 
   collision(platforms) {
-    var bottom = this.y + this.height;
-    var top = this.y;
-    var left = this.x;
-    var right = this.x + this.width;
-    var ret = [false, false, false, false];
+    const bottom = this.y + this.height;
+    const top = this.y;
+    const left = this.x;
+    const right = this.x + this.width;
+    const ret = [false, false, false, false];
 
     platforms.forEach(i => {
       if (
@@ -162,8 +162,8 @@ class Player {
 
       const angle = Math.atan(deltaY / deltaX);
 
-      let armEndX = Math.cos(angle);
-      let armEndY = Math.sin(angle);
+      let armEndX = Math.cos(angle) * this.armLength;
+      let armEndY = Math.sin(angle) * this.armLength;
 
       if (deltaX < 0) {
         armEndX = -armEndX;
@@ -174,10 +174,7 @@ class Player {
       context.strokeStyle = '#000';
       context.beginPath();
       context.moveTo(this.getCenterX(), this.getCenterY());
-      context.lineTo(
-        this.getCenterX() + armEndX * this.armLength,
-        this.getCenterY() + armEndY * this.armLength
-      );
+      context.lineTo(this.getCenterX() + armEndX, this.getCenterY() + armEndY);
       context.stroke();
     }
   }

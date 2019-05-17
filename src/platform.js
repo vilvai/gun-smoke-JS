@@ -1,4 +1,4 @@
-class Platform {
+export default class Platform {
   constructor(height, width, x, y) {
     this.height = height;
     this.width = width;
