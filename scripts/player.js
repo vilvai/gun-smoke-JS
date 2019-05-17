@@ -8,7 +8,8 @@ class Player {
     this.ySpeed = 0;
     this.acceleration = 0.5;
     this.drag = 0.2;
-    this.maxSpeed = 8;
+    this.xMaxSpeed = 8;
+    this.yMaxSpeed = 20;
     this.gravity = 0.5;
     this.jumpPower = 14;
     this.armLength = 50;
@@ -32,14 +33,14 @@ class Player {
       this.xSpeed *= 1 - this.drag;
       if (Math.abs(this.xSpeed) < 0.1) this.xSpeed = 0;
     } else {
-      this.xSpeed *= 1 - this.drag / 4;
-      if (Math.abs(this.xSpeed) < 0.1) this.xSpeed = 0;
+      this.xSpeed *= 1 - this.drag / 8;
     }
+    if (Math.abs(this.xSpeed) < 0.1) this.xSpeed = 0;
     if (keys.SPACE) {
       this.jump(collisions);
     }
 
-    this.ySpeed += this.gravity;
+    this.ySpeed = Math.min(this.ySpeed + this.gravity, this.yMaxSpeed);
     if (collisions[0] && this.ySpeed > 0) {
       this.y = collisions[0].y - this.height;
       this.ySpeed = 0;
@@ -69,37 +70,29 @@ class Player {
 
   moveRight(collisions) {
     if (collisions[0] && this.xSpeed < 0) this.xSpeed /= 4;
-    if (this.xSpeed == 0) {
-      this.xSpeed = 8 * this.acceleration;
-    } else {
-      this.xSpeed = Math.min(
-        Math.max(-this.maxSpeed, this.xSpeed + this.acceleration),
-        this.maxSpeed
-      );
-    }
+    this.xSpeed = Math.min(
+      Math.max(-this.xMaxSpeed, this.xSpeed + this.acceleration),
+      this.xMaxSpeed
+    );
   }
 
   moveLeft(collisions) {
     if (collisions[0] && this.xSpeed > 0) this.xSpeed /= 4;
-    if (this.xSpeed == 0) {
-      this.xSpeed = -8 * this.acceleration;
-    } else {
-      this.xSpeed = Math.min(
-        Math.max(-this.maxSpeed, this.xSpeed - this.acceleration),
-        this.maxSpeed
-      );
-    }
+    this.xSpeed = Math.min(
+      Math.max(-this.xMaxSpeed, this.xSpeed - this.acceleration),
+      this.xMaxSpeed
+    );
   }
 
   jump(collisions) {
     if (collisions[0]) {
       this.ySpeed = -this.jumpPower;
     } else if (collisions[2] && this.xSpeed > 0) {
-      this.ySpeed = -10;
-      this.xSpeed = -10;
+      this.ySpeed = -this.jumpPower;
+      this.xSpeed = -this.xMaxSpeed;
     } else if (collisions[3] && this.xSpeed < 0) {
-      this.ySpeed = -10;
-      this.xSpeed = 10;
+      this.ySpeed = -this.jumpPower;
+      this.xSpeed = this.xMaxSpeed;
     }
   }
 
@@ -115,44 +108,50 @@ class Player {
         i.x < right &&
         left < i.x + i.width &&
         i.y <= bottom + this.ySpeed &&
-        bottom + this.ySpeed <= i.y + 20
+        bottom + this.ySpeed <= i.y + i.height
       ) {
         ret[0] = i; // bottom collision
-      } else if (
+      }
+      if (
         i.x < right &&
         left < i.x + i.width &&
-        i.y + i.height >= top + this.ySpeed &&
-        top + this.ySpeed >= i.y + i.height - 20
+        top + this.ySpeed <= i.y + i.height &&
+        i.y <= top + this.ySpeed
       ) {
         ret[1] = i; // top collision
       }
-
       if (
         i.x <= right + this.xSpeed &&
-        right + this.xSpeed <= i.x + 20 &&
-        i.y <= bottom &&
-        top <= i.y + i.height
+        right + this.xSpeed <= i.x + i.width &&
+        i.y < bottom &&
+        top < i.y + i.height
       ) {
         ret[2] = i; // right collision
-      } else if (
-        i.x + i.width - 20 <= left + this.xSpeed &&
+      }
+      if (
+        i.x <= left + this.xSpeed &&
         left + this.xSpeed <= i.x + i.width &&
-        i.y <= bottom &&
-        top <= i.y + i.height
+        i.y < bottom &&
+        top < i.y + i.height
       ) {
         ret[3] = i; // left collision
       }
     });
+    if (ret[0] && (ret[0] == ret[2] || ret[0] == ret[3])) {
+      ret[0] = false;
+    } else if (ret[1] && (ret[1] == ret[2] || ret[1] == ret[3])) {
+      ret[1] = false;
+    }
     return ret;
   }
 
   draw(context) {
-    context.fillStyle = "#000";
+    context.fillStyle = '#000';
     context.fillRect(this.x, this.y, this.width, this.height);
 
     if (this.mouseX) {
       context.lineWidth = 1;
-      context.strokeStyle = "#f00";
+      context.strokeStyle = '#f00';
       context.beginPath();
       context.moveTo(this.getCenterX(), this.getCenterY());
       context.lineTo(this.mouseX, this.mouseY);
@@ -172,7 +171,7 @@ class Player {
       }
 
       context.lineWidth = 15;
-      context.strokeStyle = "#000";
+      context.strokeStyle = '#000';
       context.beginPath();
       context.moveTo(this.getCenterX(), this.getCenterY());
       context.lineTo(
