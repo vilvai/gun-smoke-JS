@@ -1,4 +1,4 @@
-class Camera {
+export default class Camera {
   constructor(player, platforms) {
     this.player = player;
     this.platforms = platforms;

@@ -1,9 +1,11 @@
 import Player from './player.js';
 import Platform from './platform.js';
+import Camera from './camera.js';
 
 import { setup_peer } from './network/util.js';
 
 const players = [];
+const cameras = [];
 const platforms = [
   new Platform(50, 1000000, 10, 700),
   new Platform(50, 300, 700, 700),
@@ -40,15 +42,18 @@ ctx.update = () => {
 
 ctx.draw = () => {
   ctx.fillStyle = '#ccc';
-  ctx.fillRect(0, 0, ctx.width, ctx.height);
+  cameras.forEach(camera => camera.draw(ctx));
+  /*ctx.fillRect(0, 0, ctx.width, ctx.height);
 
   platforms.forEach(platform => platform.draw(ctx));
 
-  players.forEach(player => player.draw(ctx));
+  players.forEach(player => player.draw(ctx));*/
 };
 
 ctx.spawn = () => {
   const player = new Player(100, 40, 40, ctx.width / 4);
+  const camera = new Camera(player, platforms);
+  cameras.push(camera);
   players.push(player);
   // console.log(p_index);
   // return p_index;
