@@ -8,8 +8,7 @@ let playerByconnectionId = {};
 let peer = null;
 
 //Setup peer and all it's event handlers
-function setup_peer() {
-  ctx.spawn();
+export function setup_peer() {
   let peer = new Peer({
     key: 'peerjs',
     host: 'gunsmok.herokuapp.com',
@@ -91,6 +90,68 @@ function reset_vars() {
   peer.destroy();
   peer = null;
   //conn.close()
+}
+
+//What does client do when host disconnects
+function disconnect_host(conn) {
+  reset_vars();
+  alert('Host closed connection');
+  console.log('Host closed connection');
+}
+
+//Connect to given host if one isn't a host already
+function connect_to_host(host_id) {
+  //Setup a client
+  peer = setup_peer();
+  console.log('Connecting to host: ' + host_id);
+  let conn = peer.connect(
+    host_id,
+    (label = 'Player')
+  );
+  //On open will be launch when you successfully connect to PeerServer
+  conn.on('open', function() {
+    console.log('Connection succesful');
+    //Send ok to the host
+    conn.send('ok');
+    host = conn;
+    //Disconnect the peer so no-one can connect to it
+    peer.disconnect();
+  });
+
+  conn.on('close', function() {
+    disconnect_host(conn);
+  });
+  conn.on('disconnect', function() {
+    disconnect_host(conn);
+  });
+}
+
+function stop_hosting() {
+  if (isHost && host != null) {
+    reset_vars();
+  }
+}
+
+function send_to_clients(data) {
+  connections.forEach(conn => {
+    conn.send(data);
+  });
+}
+
+//What does a host do when client disconnects
+function disconnect_conn(conn) {
+  //Remove connection from the list
+  console.log(conn.connectionId + ' has left');
+  conn.close();
+
+  conn_keys = Object.keys(playerByconnectionId);
+  conn_keys.forEach(current_conn => {
+    if (current_conn == conn.connectionId)
+      delete playerByconnectionId[current_conn];
+  });
+  connections = connections.filter(
+    current_conn => current_conn.connectionId != conn.connectionId
+  );
 }
 
 /// UI

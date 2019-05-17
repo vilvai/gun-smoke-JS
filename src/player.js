@@ -1,4 +1,4 @@
-class Player {
+export default class Player {
   constructor(height, width, x) {
     this.height = height;
     this.width = width;
@@ -24,9 +24,9 @@ class Player {
 
   update(keys, platforms, windowHeight, mouseX, mouseY) {
     const collisions = this.collision(platforms);
-    if (keys.RIGHT) {
+    if (keys.D) {
       this.moveRight(collisions);
-    } else if (keys.LEFT) {
+    } else if (keys.A) {
       this.moveLeft(collisions);
     } else if (collisions[0]) {
       this.xSpeed *= 1 - this.drag;
@@ -35,7 +35,7 @@ class Player {
       this.xSpeed *= 1 - this.drag / 4;
       if (Math.abs(this.xSpeed) < 0.1) this.xSpeed = 0;
     }
-    if (keys.SPACE) {
+    if (keys.W) {
       this.jump(collisions);
     }
 

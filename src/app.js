@@ -1,10 +1,7 @@
-let mouseX;
-let mouseY;
+import Player from './player.js';
+import Platform from './platform.js';
 
-const onMouseMove = event => {
-  mouseX = event.pageX;
-  mouseY = event.pageY;
-};
+import { setup_peer } from './network/util.js';
 
 const players = [];
 const platforms = [
@@ -19,11 +16,24 @@ const ctx = Sketch.create({
   container: document.getElementById('sketch-container'),
 });
 
-ctx.setup = () => {};
+const get_host_id = address => {
+  const href_array = window.location.href.split('?');
+  if (href_array.length == 1) return false;
+  if (!href_array[1].includes('host=')) return false;
+  return href_array[1].split('host=')[1];
+};
+
+ctx.setup = () => {
+  const host_id = get_host_id(window.location.href);
+  if (!host_id) {
+    setup_peer();
+    ctx.spawn();
+  }
+};
 
 ctx.update = () => {
   players.forEach(player =>
-    player.update(ctx.keys, platforms, ctx.height, mouseX, mouseY)
+    player.update(ctx.keys, platforms, ctx.height, ctx.mouse.x, ctx.mouse.y)
   );
   //send_to_clients(data)
 };
@@ -38,13 +48,11 @@ ctx.draw = () => {
 };
 
 ctx.spawn = () => {
-  const player = new Player(100, 40, 40, this.width / 4);
-  p_index = players.push(player) - 1;
-  console.log(p_index);
-  return p_index;
+  const player = new Player(100, 40, 40, ctx.width / 4);
+  players.push(player);
+  // console.log(p_index);
+  // return p_index;
 };
-
-document.addEventListener('mousemove', onMouseMove);
 
 /* let mouseX;
 let mouseY;
