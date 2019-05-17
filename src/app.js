@@ -1,15 +1,26 @@
 import Player from './player.js';
+import OtherPlayer from './player.js';
+
 import Platform from './platform.js';
 
-import { setup_peer } from './network/util.js';
+import {
+  setup_peer,
+  connect_to_host,
+  send_to_clients,
+} from './network/util.js';
 
-const players = [];
+let player;
+let player_id;
+const other_players_by_id = {};
+const all_players_data_by_id = {};
+
+let playerIsHost = false;
+
 const platforms = [
-  new Platform(50, 1000000, 10, 700),
-  new Platform(50, 300, 700, 700),
-  new Platform(50, 300, 1040, 700),
-  new Platform(500, 50, 1300, 200),
-  new Platform(50, 300, 700, 450),
+  new Platform(50, 1000, 0, 700),
+  new Platform(300, 50, 475, 200),
+  new Platform(40, 200, 100, 450),
+  new Platform(40, 200, 700, 450),
 ];
 
 const ctx = Sketch.create({
@@ -25,17 +36,31 @@ const get_host_id = address => {
 
 ctx.setup = () => {
   const host_id = get_host_id(window.location.href);
+  setup_peer();
   if (!host_id) {
-    setup_peer();
-    ctx.spawn();
+    playerIsHost = true;
+  } else {
+    playerIsHost = false;
+    connect_to_host(host_id);
   }
 };
 
 ctx.update = () => {
-  players.forEach(player =>
-    player.update(ctx.keys, platforms, ctx.height, ctx.mouse.x, ctx.mouse.y)
+  if (player) {
+    player.update(ctx.keys, platforms, ctx.mouse.x, ctx.mouse.y);
+    all_players_data_by_id[player_id] = {
+      x: player.x,
+      y: player.y,
+    };
+  }
+
+  Object.entries(other_players_by_id).forEach((id, other_player) =>
+    other_player.update(all_players_data_by_id[id])
   );
-  //send_to_clients(data)
+  // if (playerIsHost) {
+  //   send_to_clients(all_players_data_by_id);
+  // } else {
+  // }
 };
 
 ctx.draw = () => {
@@ -43,47 +68,17 @@ ctx.draw = () => {
   ctx.fillRect(0, 0, ctx.width, ctx.height);
 
   platforms.forEach(platform => platform.draw(ctx));
-
-  players.forEach(player => player.draw(ctx));
+  if (player) player.draw(ctx);
+  Object.values(other_players_by_id).forEach(other_player =>
+    other_player.draw(ctx)
+  );
 };
 
-ctx.spawn = () => {
-  const player = new Player(100, 40, 40, ctx.width / 4);
-  players.push(player);
-  // console.log(p_index);
-  // return p_index;
+export const spawn_player = (x, y, id) => {
+  player = new Player(x, y, id);
+  player_id = id;
 };
 
-/* let mouseX;
-let mouseY;
-
-const onMouseMove = event => {
-  mouseX = event.pageX;
-  mouseY = event.pageY;
+export const spawn_other_player = (x, y, id) => {
+  other_players_by_id[id] = new OtherPlayer(x, y);
 };
-
-Sketch.create({
-  container: document.getElementById("container"),
-  setup() {
-    this.player = new Player(100, 40, this.width / 4);
-    this.platforms = [
-      new Platform(50, 300, 200, 700),
-      new Platform(50, 300, 700, 700),
-      new Platform(50, 300, 1040, 700),
-      new Platform(500, 50, 1300, 200),
-      new Platform(50, 300, 700, 450)
-    ];
-  },
-  update() {
-    this.player.update(this.keys, this.platforms, this.height, mouseX, mouseY);
-  },
-  draw() {
-    this.fillStyle = "#ccc";
-    this.fillRect(0, 0, this.width, this.height);
-    this.platforms.forEach(x => x.draw(this));
-    this.player.draw(this);
-  }
-});
-
-document.addEventListener("mousemove", onMouseMove);
- */

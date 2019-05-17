@@ -1,47 +1,51 @@
+import {
+  PLAYER_WIDTH,
+  PLAYER_HEIGHT,
+  PLAYER_ACCELERATION,
+  PLAYER_DRAG,
+  PLAYER_MAX_SPEED,
+  PLAYER_JUMP_POWER,
+  PLAYER_GRAVITY,
+  PLAYER_ARM_LENGTH,
+  PLAYER_ARM_WIDHT,
+} from './player_constants.js';
+
 export default class Player {
-  constructor(height, width, x) {
-    this.height = height;
-    this.width = width;
+  constructor(x, y) {
     this.x = x;
-    this.y = 500;
+    this.y = y;
     this.xSpeed = 0;
     this.ySpeed = 0;
-    this.acceleration = 0.5;
-    this.drag = 0.2;
-    this.maxSpeed = 8;
-    this.gravity = 0.5;
-    this.jumpPower = 14;
-    this.armLength = 50;
   }
 
   getCenterX() {
-    return this.x + this.width / 2;
+    return this.x + PLAYER_WIDTH / 2;
   }
 
   getCenterY() {
-    return this.y + this.height / 2;
+    return this.y + PLAYER_HEIGHT / 2;
   }
 
-  update(keys, platforms, windowHeight, mouseX, mouseY) {
+  update(keys, platforms, mouseX, mouseY) {
     const collisions = this.collision(platforms);
     if (keys.D) {
       this.moveRight(collisions);
     } else if (keys.A) {
       this.moveLeft(collisions);
     } else if (collisions[0]) {
-      this.xSpeed *= 1 - this.drag;
+      this.xSpeed *= 1 - PLAYER_DRAG;
       if (Math.abs(this.xSpeed) < 0.1) this.xSpeed = 0;
     } else {
-      this.xSpeed *= 1 - this.drag / 4;
+      this.xSpeed *= 1 - PLAYER_DRAG / 4;
       if (Math.abs(this.xSpeed) < 0.1) this.xSpeed = 0;
     }
     if (keys.W) {
       this.jump(collisions);
     }
 
-    this.ySpeed += this.gravity;
+    this.ySpeed += PLAYER_GRAVITY;
     if (collisions[0] && this.ySpeed > 0) {
-      this.y = collisions[0].y - this.height;
+      this.y = collisions[0].y - PLAYER_HEIGHT;
       this.ySpeed = 0;
     }
     if (collisions[1] && this.ySpeed < 0) {
@@ -49,7 +53,7 @@ export default class Player {
       this.ySpeed = 0;
     }
     if (collisions[2] && this.xSpeed > 0) {
-      this.x = collisions[2].x - this.width;
+      this.x = collisions[2].x - PLAYER_WIDTH;
       this.xSpeed = 0;
     }
     if (collisions[3] && this.xSpeed < 0) {
@@ -59,8 +63,8 @@ export default class Player {
     this.y += this.ySpeed;
     this.x += this.xSpeed;
 
-    if (this.y > windowHeight) {
-      this.y = -this.height;
+    if (this.y > 1500) {
+      this.y = -PLAYER_HEIGHT;
     }
 
     this.mouseX = mouseX;
@@ -70,11 +74,11 @@ export default class Player {
   moveRight(collisions) {
     if (collisions[0] && this.xSpeed < 0) this.xSpeed /= 4;
     if (this.xSpeed == 0) {
-      this.xSpeed = 8 * this.acceleration;
+      this.xSpeed = 8 * PLAYER_ACCELERATION;
     } else {
       this.xSpeed = Math.min(
-        Math.max(-this.maxSpeed, this.xSpeed + this.acceleration),
-        this.maxSpeed
+        Math.max(-PLAYER_MAX_SPEED, this.xSpeed + PLAYER_ACCELERATION),
+        PLAYER_MAX_SPEED
       );
     }
   }
@@ -82,18 +86,18 @@ export default class Player {
   moveLeft(collisions) {
     if (collisions[0] && this.xSpeed > 0) this.xSpeed /= 4;
     if (this.xSpeed == 0) {
-      this.xSpeed = -8 * this.acceleration;
+      this.xSpeed = -8 * PLAYER_ACCELERATION;
     } else {
       this.xSpeed = Math.min(
-        Math.max(-this.maxSpeed, this.xSpeed - this.acceleration),
-        this.maxSpeed
+        Math.max(-PLAYER_MAX_SPEED, this.xSpeed - PLAYER_ACCELERATION),
+        PLAYER_MAX_SPEED
       );
     }
   }
 
   jump(collisions) {
     if (collisions[0]) {
-      this.ySpeed = -this.jumpPower;
+      this.ySpeed = -PLAYER_JUMP_POWER;
     } else if (collisions[2] && this.xSpeed > 0) {
       this.ySpeed = -10;
       this.xSpeed = -10;
@@ -104,10 +108,10 @@ export default class Player {
   }
 
   collision(platforms) {
-    const bottom = this.y + this.height;
+    const bottom = this.y + PLAYER_HEIGHT;
     const top = this.y;
     const left = this.x;
-    const right = this.x + this.width;
+    const right = this.x + PLAYER_WIDTH;
     const ret = [false, false, false, false];
 
     platforms.forEach(i => {
@@ -148,7 +152,7 @@ export default class Player {
 
   draw(context) {
     context.fillStyle = '#000';
-    context.fillRect(this.x, this.y, this.width, this.height);
+    context.fillRect(this.x, this.y, PLAYER_WIDTH, PLAYER_HEIGHT);
 
     if (this.mouseX) {
       context.lineWidth = 1;
@@ -163,15 +167,15 @@ export default class Player {
 
       const angle = Math.atan(deltaY / deltaX);
 
-      let armEndX = Math.cos(angle) * this.armLength;
-      let armEndY = Math.sin(angle) * this.armLength;
+      let armEndX = Math.cos(angle) * PLAYER_ARM_LENGTH;
+      let armEndY = Math.sin(angle) * PLAYER_ARM_LENGTH;
 
       if (deltaX < 0) {
         armEndX = -armEndX;
         armEndY = -armEndY;
       }
 
-      context.lineWidth = 15;
+      context.lineWidth = PLAYER_ARM_WIDHT;
       context.strokeStyle = '#000';
       context.beginPath();
       context.moveTo(this.getCenterX(), this.getCenterY());

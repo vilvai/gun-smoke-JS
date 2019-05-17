@@ -1,3 +1,5 @@
+import { spawn_player, spawn_other_player } from '../app.js';
+
 //Host is set if you connect to someone
 let host = null;
 let isHost = false;
@@ -16,6 +18,10 @@ export function setup_peer() {
     port: 443,
   });
 
+  peer.on('open', function(id) {
+    console.log('My peer ID is: ' + id);
+  });
+
   peer.on('error', function(err) {
     alert('Peer.js ' + err);
     isClient = false;
@@ -24,27 +30,6 @@ export function setup_peer() {
     }
   });
   console.log(peer);
-
-  //Timeout if peer doesn't have id after 10 tries
-  let timeout = 10;
-  //Setup self as host, but wait till peer gets id
-  function set_host() {
-    if (timeout)
-      setTimeout(function() {
-        if (peer.id) host = peer;
-        else {
-          timeout--;
-          set_host();
-        }
-      }, 500);
-    else {
-      alert("Can't connect to the server, try again please");
-      isHost = false;
-    }
-  }
-
-  //Set self as host if isHost
-  if (isHost) set_host();
 
   //Peer event handlers, mostly related to host
   peer.on('connection', function(conn) {
@@ -100,7 +85,7 @@ function disconnect_host(conn) {
 }
 
 //Connect to given host if one isn't a host already
-function connect_to_host(host_id) {
+export function connect_to_host(host_id) {
   //Setup a client
   peer = setup_peer();
   console.log('Connecting to host: ' + host_id);
@@ -132,7 +117,7 @@ function stop_hosting() {
   }
 }
 
-function send_to_clients(data) {
+export function send_to_clients(data) {
   connections.forEach(conn => {
     conn.send(data);
   });
@@ -153,51 +138,5 @@ function disconnect_conn(conn) {
     current_conn => current_conn.connectionId != conn.connectionId
   );
 }
-
-/// UI
-
-//TODO fuusioi tää saman eventin kanssa joka piirtää viivaa?
-//https://stackoverflow.com/questions/7790725/javascript-track-mouse-position
-function handleMouseMove(event) {
-  if (!isHost && host != null)
-    host.send({
-      mouse_move: {
-        X: event.pageX,
-        Y: event.pageY,
-      },
-    });
-}
-
-function handleMouseClick() {
-  if (!isHost && host != null)
-    host.send({
-      mouse_click: {
-        X: event.pageX,
-        Y: event.pageY,
-      },
-    });
-}
-
-document.getElementById('connect-to-btn').onclick = () => {
-  if (!isClient && !isHost && host == null) {
-    isClient = true;
-    connect_to_host(document.getElementById('connect-to-text').value);
-  }
-};
-
-document.getElementById('host-btn').onclick = () => {
-  if (!isHost && !isClient && host == null) {
-    isHost = true;
-    peer = setup_peer();
-    document.getElementById('connect-to-text').value = peer.id;
-  }
-};
-
-/* document.addEventListener("keydown", function(event) {
-    console.log(event.which)
-}) */
-
-document.onmousemove = handleMouseMove;
-document.onclick = handleMouseClick;
 
 //heroku.com/deploy/?template=https://github.com/peers/peerjs-server
