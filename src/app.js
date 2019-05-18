@@ -1,94 +1,131 @@
-import Player from './player.js';
+import Player, { OtherPlayer } from './player.js';
 import Platform from './platform.js';
 import Camera from './camera.js';
 
-import { setup_peer } from './network/util.js';
+import { setupPeer, connectToHost } from './network/util.js';
 
-const players = [];
-const cameras = [];
+let player;
+let playerId;
+const otherPlayersById = {};
+const allPlayersDataById = {};
+
+export let playerIsHost = false;
+const connectionsById = {};
+let hostConnection;
+
 const platforms = [
-  new Platform(50, 1000000, 10, 700),
-  new Platform(50, 300, 700, 700),
-  new Platform(50, 300, 1040, 700),
-  new Platform(500, 50, 1300, 200),
-  new Platform(50, 300, 700, 450),
+  new Platform(0, 700, 1000, 50),
+  new Platform(475, 200, 50, 300),
+  new Platform(100, 450, 200, 40),
+  new Platform(700, 450, 200, 40),
 ];
+
+const camera = new Camera();
 
 const ctx = Sketch.create({
   container: document.getElementById('sketch-container'),
 });
 
-const get_host_id = address => {
-  const href_array = window.location.href.split('?');
-  if (href_array.length == 1) return false;
-  if (!href_array[1].includes('host=')) return false;
-  return href_array[1].split('host=')[1];
+const getHostId = address => {
+  const hrefArray = window.location.href.split('?');
+  if (hrefArray.length == 1) return false;
+  if (!hrefArray[1].includes('host=')) return false;
+  return hrefArray[1].split('host=')[1];
 };
 
 ctx.setup = () => {
-  const host_id = get_host_id(window.location.href);
-  if (!host_id) {
-    setup_peer();
-    ctx.spawn();
+  const hostId = getHostId(window.location.href);
+
+  const onError = alert;
+  let onResolve;
+
+  if (!hostId) {
+    playerIsHost = true;
+    onResolve = peer => {
+      playerId = peer.id;
+      updateOverlayText(
+        'Share this link with friend: <br> localhost:8080?host=' + peer.id
+      );
+    };
+  } else {
+    playerIsHost = false;
+    onResolve = peer => {
+      playerId = peer.id;
+      connectToHost(peer, hostId);
+    };
   }
+  setupPeer.then(onResolve, onError);
 };
 
 ctx.update = () => {
-  players.forEach(player =>
-    player.update(ctx.keys, platforms, ctx.height, ctx.mouse.x, ctx.mouse.y)
+  if (player) {
+    player.update(ctx.keys, platforms, ctx.mouse.x, ctx.mouse.y);
+    allPlayersDataById[playerId] = {
+      x: player.x,
+      y: player.y,
+    };
+  }
+
+  Object.entries(otherPlayersById).forEach(([id, otherPlayer]) =>
+    otherPlayer.update(allPlayersDataById[id])
   );
-  //send_to_clients(data)
+  if (playerIsHost) {
+    Object.values(connectionsById).forEach(connection =>
+      connection.send(allPlayersDataById)
+    );
+  } else {
+    hostConnection.send({
+      [playerId]: allPlayersDataById[playerId],
+    });
+  }
 };
 
 ctx.draw = () => {
   ctx.fillStyle = '#ccc';
-  cameras.forEach(camera => camera.draw(ctx));
-  /*ctx.fillRect(0, 0, ctx.width, ctx.height);
-
+  ctx.fillRect(0, 0, ctx.width, ctx.height);
   platforms.forEach(platform => platform.draw(ctx));
-
-  players.forEach(player => player.draw(ctx));*/
-};
-
-ctx.spawn = () => {
-  const player = new Player(100, 40, 40, ctx.width / 4);
-  const camera = new Camera(player, platforms);
-  cameras.push(camera);
-  players.push(player);
-  // console.log(p_index);
-  // return p_index;
-};
-
-/* let mouseX;
-let mouseY;
-
-const onMouseMove = event => {
-  mouseX = event.pageX;
-  mouseY = event.pageY;
-};
-
-Sketch.create({
-  container: document.getElementById("container"),
-  setup() {
-    this.player = new Player(100, 40, this.width / 4);
-    this.platforms = [
-      new Platform(50, 300, 200, 700),
-      new Platform(50, 300, 700, 700),
-      new Platform(50, 300, 1040, 700),
-      new Platform(500, 50, 1300, 200),
-      new Platform(50, 300, 700, 450)
-    ];
-  },
-  update() {
-    this.player.update(this.keys, this.platforms, this.height, mouseX, mouseY);
-  },
-  draw() {
-    this.fillStyle = "#ccc";
-    this.fillRect(0, 0, this.width, this.height);
-    this.platforms.forEach(x => x.draw(this));
-    this.player.draw(this);
+  if (player) {
+    player.draw(ctx);
+    // camera.draw(ctx, player, platforms);
   }
-});
+  Object.values(otherPlayersById).forEach(otherPlayer => otherPlayer.draw(ctx));
+};
 
-document.addEventListener("mousemove", onMouseMove);
- */
+export const onReceiveData = data => {
+  Object.entries(data).forEach(
+    ([id, playerData]) => (allPlayersDataById[id] = playerData)
+  );
+};
+
+export const startGame = connection => {
+  removeOverlayText();
+  if (playerIsHost) {
+    connectionsById[connection.peer] = connection;
+    player = new Player(180, 300);
+    otherPlayersById[connection.peer] = new OtherPlayer(780, 300);
+    allPlayersDataById[connection.peer] = {
+      x: 780,
+      y: 300,
+    };
+  } else {
+    hostConnection = connection;
+    player = new Player(780, 300);
+    otherPlayersById[connection.peer] = new OtherPlayer(180, 300);
+    allPlayersDataById[connection.peer] = {
+      x: 180,
+      y: 300,
+    };
+  }
+};
+
+const updateOverlayText = text =>
+  (document.getElementById('loading-overlay').innerHTML = text);
+
+const removeOverlayText = () => {
+  document.getElementById('loading-overlay').remove();
+  document.getElementById('sketch-container').style.filter = 'none';
+};
+
+export const endGame = () => {
+  alert('Game ended');
+};
