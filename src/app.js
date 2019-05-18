@@ -40,7 +40,9 @@ ctx.setup = () => {
     playerIsHost = true;
     onResolve = peer => {
       playerId = peer.id;
-      alert('Share this link with friend: localhost:8080?host=' + peer.id);
+      updateOverlayText(
+        'Share this link with friend: <br> localhost:8080?host=' + peer.id
+      );
     };
   } else {
     playerIsHost = false;
@@ -91,6 +93,7 @@ export const onReceiveData = data => {
 };
 
 export const startGame = connection => {
+  removeOverlayText();
   if (playerIsHost) {
     connectionsById[connection.peer] = connection;
     player = new Player(180, 300);
@@ -108,6 +111,14 @@ export const startGame = connection => {
       y: 300,
     };
   }
+};
+
+const updateOverlayText = text =>
+  (document.getElementById('loading-overlay').innerHTML = text);
+
+const removeOverlayText = () => {
+  document.getElementById('loading-overlay').remove();
+  document.getElementById('sketch-container').style.filter = 'none';
 };
 
 export const endGame = () => {
