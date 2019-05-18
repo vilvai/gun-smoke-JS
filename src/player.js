@@ -10,6 +10,23 @@ import {
   PLAYER_ARM_WIDHT,
 } from './player_constants.js';
 
+export class OtherPlayer {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+  }
+
+  update({ x, y }) {
+    this.x = x;
+    this.y = y;
+  }
+
+  draw(context) {
+    context.fillStyle = '#000';
+    context.fillRect(this.x, this.y, PLAYER_WIDTH, PLAYER_HEIGHT);
+  }
+}
+
 export default class Player {
   constructor(x, y) {
     this.x = x;

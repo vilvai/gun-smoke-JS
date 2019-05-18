@@ -1,16 +1,16 @@
-import Player from './player.js';
-import OtherPlayer from './player.js';
-
+import Player, { OtherPlayer } from './player.js';
 import Platform from './platform.js';
 
-import { setupPeer, connectToHost, sendToClients } from './network/util.js';
+import { setupPeer, connectToHost } from './network/util.js';
 
 let player;
 let playerId;
 const otherPlayersById = {};
 const allPlayersDataById = {};
 
-let playerIsHost = false;
+export let playerIsHost = false;
+const connectionsById = {};
+let hostConnection;
 
 const platforms = [
   new Platform(0, 700, 1000, 50),
@@ -38,13 +38,18 @@ ctx.setup = () => {
 
   if (!hostId) {
     playerIsHost = true;
-    onResolve = id => spawnPlayer(180, 300, id);
+    onResolve = peer => {
+      playerId = peer.id;
+      alert('Share this link with friend: localhost:8080?host=' + peer.id);
+    };
   } else {
     playerIsHost = false;
-    onResolve = id => spawnPlayer(780, 300, id);
+    onResolve = peer => {
+      playerId = peer.id;
+      connectToHost(peer, hostId);
+    };
   }
-  setupPeer.then(id => onResolve, onError);
-  connectToHost(hostId);
+  setupPeer.then(onResolve, onError);
 };
 
 ctx.update = () => {
@@ -56,13 +61,18 @@ ctx.update = () => {
     };
   }
 
-  Object.entries(otherPlayersById).forEach((id, otherPlayer) =>
+  Object.entries(otherPlayersById).forEach(([id, otherPlayer]) =>
     otherPlayer.update(allPlayersDataById[id])
   );
-  // if (playerIsHost) {
-  //   sendToClients(allPlayersDataById);
-  // } else {
-  // }
+  if (playerIsHost) {
+    Object.values(connectionsById).forEach(connection =>
+      connection.send(allPlayersDataById)
+    );
+  } else {
+    hostConnection.send({
+      [playerId]: allPlayersDataById[playerId],
+    });
+  }
 };
 
 ctx.draw = () => {
@@ -74,11 +84,32 @@ ctx.draw = () => {
   Object.values(otherPlayersById).forEach(otherPlayer => otherPlayer.draw(ctx));
 };
 
-export const spawnPlayer = (x, y, id) => {
-  player = new Player(x, y);
-  playerId = id;
+export const onReceiveData = data => {
+  Object.entries(data).forEach(
+    ([id, playerData]) => (allPlayersDataById[id] = playerData)
+  );
 };
 
-export const spawnOtherPlayer = (x, y, id) => {
-  otherPlayersById[id] = new OtherPlayer(x, y);
+export const startGame = connection => {
+  if (playerIsHost) {
+    connectionsById[connection.peer] = connection;
+    player = new Player(180, 300);
+    otherPlayersById[connection.peer] = new OtherPlayer(780, 300);
+    allPlayersDataById[connection.peer] = {
+      x: 780,
+      y: 300,
+    };
+  } else {
+    hostConnection = connection;
+    player = new Player(780, 300);
+    otherPlayersById[connection.peer] = new OtherPlayer(180, 300);
+    allPlayersDataById[connection.peer] = {
+      x: 180,
+      y: 300,
+    };
+  }
+};
+
+export const endGame = () => {
+  alert('Game ended');
 };
