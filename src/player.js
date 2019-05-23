@@ -75,6 +75,9 @@ export default class Player extends GenericPlayer {
     if (keys.W) {
       this.jump(collisions);
     }
+    if (keys.S) {
+      this.drop(collisions);
+    }
 
     this.ySpeed = Math.min(this.ySpeed + PLAYER_GRAVITY, PLAYER_MAX_Y_SPEED);
     if (collisions[0] && this.ySpeed > 0) {
@@ -134,6 +137,14 @@ export default class Player extends GenericPlayer {
     }
   }
 
+  drop(collisions) {
+    if (collisions[0]) {
+      if (!collisions[0].hasCollision) {
+        collisions[0] = false;
+      }
+    }
+  }
+
   collision(platforms) {
     const bottom = this.y + PLAYER_HEIGHT;
     const top = this.y;
@@ -148,7 +159,16 @@ export default class Player extends GenericPlayer {
         i.y <= bottom + this.ySpeed &&
         bottom + this.ySpeed <= i.y + i.height
       ) {
-        collisions[0] = i; // bottom collision
+        if (
+          !(
+            i.x < right &&
+            left < i.x + i.width &&
+            i.y < bottom &&
+            bottom < i.y + i.height
+          )
+        ) {
+          collisions[0] = i; // bottom collision
+        }
       }
       if (
         i.x < right &&
@@ -156,7 +176,7 @@ export default class Player extends GenericPlayer {
         top + this.ySpeed <= i.y + i.height &&
         i.y <= top + this.ySpeed
       ) {
-        collisions[1] = i; // top collision
+        if (i.hasCollision) collisions[1] = i; // top collision
       }
       if (
         i.x <= right + this.xSpeed &&
@@ -164,7 +184,7 @@ export default class Player extends GenericPlayer {
         i.y < bottom &&
         top < i.y + i.height
       ) {
-        collisions[2] = i; // right collision
+        if (i.hasCollision) collisions[2] = i; // right collision
       }
       if (
         i.x <= left + this.xSpeed &&
@@ -172,7 +192,7 @@ export default class Player extends GenericPlayer {
         i.y < bottom &&
         top < i.y + i.height
       ) {
-        collisions[3] = i; // left collision
+        if (i.hasCollision) collisions[3] = i; // left collision
       }
     });
     if (

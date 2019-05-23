@@ -16,13 +16,19 @@ const connectionsById = {};
 let hostConnection;
 
 const platforms = [
-  new Platform(0, 700, 1000, 50),
-  new Platform(475, 200, 50, 300),
-  new Platform(100, 450, 200, 40),
-  new Platform(700, 450, 200, 40),
-];
+  // bounding box
+  new Platform(0, 670, 1280, 100, true), // floor
+  new Platform(0, -50, 1280, 50, true), // ceiling
+  new Platform(-50, 0, 50, 720, true), // left wall
+  new Platform(1280, 0, 50, 720, true), // right wall
 
-const camera = new Camera();
+  // platforms
+  new Platform(340, 490, 600, 30, false),
+  new Platform(0, 320, 150, 20, false),
+  new Platform(1130, 320, 150, 20, false),
+  new Platform(390, 310, 500, 20, false),
+  // new Platform(340, 500, 600, 30, false),
+];
 
 const getHostId = address => {
   const hrefArray = window.location.href.split('?');
@@ -128,12 +134,11 @@ export default class Game {
     };
 
     ctx.draw = () => {
-      ctx.fillStyle = '#ccc';
+      ctx.fillStyle = '#cef';
       ctx.fillRect(0, 0, ctx.width, ctx.height);
       platforms.forEach(platform => platform.draw(ctx));
       if (player) {
         player.draw(ctx);
-        // camera.draw(ctx, player, platforms);
       }
       Object.values(otherPlayersById).forEach(otherPlayer =>
         otherPlayer.draw(ctx)
