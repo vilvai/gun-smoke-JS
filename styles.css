@@ -20,4 +20,16 @@ body {
 #sketch-container {
   cursor: none;
   filter: blur(15px);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#sketch-container > canvas {
+  border: 5px solid black;
 }

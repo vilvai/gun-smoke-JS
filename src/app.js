@@ -24,6 +24,10 @@ const camera = new Camera();
 
 const ctx = Sketch.create({
   container: document.getElementById('sketch-container'),
+  width: 1280,
+  height: 720,
+  fullscreen: false,
+  autopause: false,
 });
 
 const getHostId = address => {
@@ -44,7 +48,7 @@ ctx.setup = () => {
     onResolve = peer => {
       playerId = peer.id;
       updateOverlayText(
-        'Share this link with friend: <br> localhost:8080?host=' + peer.id
+        'Share this link with a friend: <br>localhost:8080?host=' + peer.id
       );
     };
   } else {
