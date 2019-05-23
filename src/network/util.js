@@ -1,4 +1,6 @@
-import { startGame, endGame, playerIsHost, onReceiveData } from '../app.js';
+import Peer from 'peerjs';
+
+import { startGame, endGame, playerIsHost, onReceiveData } from '../game.js';
 
 export const setupPeer = new Promise((resolve, reject) => {
   const peer = new Peer({
