@@ -11,37 +11,52 @@ import {
   PLAYER_ARM_WIDHT,
 } from './player_constants.js';
 
-export class OtherPlayer {
+export class GenericPlayer {
   constructor(x, y) {
     this.x = x;
     this.y = y;
   }
 
-  update({ x, y }) {
+  getArmStartX() {
+    return this.x + PLAYER_WIDTH / 2;
+  }
+
+  getArmStartY() {
+    return this.y + PLAYER_HEIGHT / 2;
+  }
+
+  update({ x, y, angle }) {
     this.x = x;
     this.y = y;
+    this.angle = angle;
   }
 
   draw(context) {
     context.fillStyle = '#000';
     context.fillRect(this.x, this.y, PLAYER_WIDTH, PLAYER_HEIGHT);
+
+    if (this.angle) {
+      const armEndX = Math.cos(this.angle) * PLAYER_ARM_LENGTH;
+      const armEndY = Math.sin(this.angle) * PLAYER_ARM_LENGTH;
+
+      context.lineWidth = PLAYER_ARM_WIDHT;
+      context.strokeStyle = '#000';
+      context.beginPath();
+      context.moveTo(this.getArmStartX(), this.getArmStartY());
+      context.lineTo(
+        this.getArmStartX() + armEndX,
+        this.getArmStartY() + armEndY
+      );
+      context.stroke();
+    }
   }
 }
 
-export default class Player {
+export default class Player extends GenericPlayer {
   constructor(x, y) {
-    this.x = x;
-    this.y = y;
+    super(x, y);
     this.xSpeed = 0;
     this.ySpeed = 0;
-  }
-
-  getCenterX() {
-    return this.x + PLAYER_WIDTH / 2;
-  }
-
-  getCenterY() {
-    return this.y + PLAYER_HEIGHT / 2;
   }
 
   update(keys, platforms, mouseX, mouseY) {
@@ -85,8 +100,10 @@ export default class Player {
       this.y = -PLAYER_HEIGHT;
     }
 
-    this.mouseX = mouseX;
-    this.mouseY = mouseY;
+    const deltaX = mouseX - this.getArmStartX();
+    const deltaY = mouseY - this.getArmStartY();
+
+    this.angle = -Math.atan2(deltaX, deltaY) + Math.PI / 2;
   }
 
   moveRight(collisions) {
@@ -122,7 +139,7 @@ export default class Player {
     const top = this.y;
     const left = this.x;
     const right = this.x + PLAYER_WIDTH;
-    const ret = [false, false, false, false];
+    const collisions = [false, false, false, false];
 
     platforms.forEach(i => {
       if (
@@ -131,7 +148,7 @@ export default class Player {
         i.y <= bottom + this.ySpeed &&
         bottom + this.ySpeed <= i.y + i.height
       ) {
-        ret[0] = i; // bottom collision
+        collisions[0] = i; // bottom collision
       }
       if (
         i.x < right &&
@@ -139,7 +156,7 @@ export default class Player {
         top + this.ySpeed <= i.y + i.height &&
         i.y <= top + this.ySpeed
       ) {
-        ret[1] = i; // top collision
+        collisions[1] = i; // top collision
       }
       if (
         i.x <= right + this.xSpeed &&
@@ -147,7 +164,7 @@ export default class Player {
         i.y < bottom &&
         top < i.y + i.height
       ) {
-        ret[2] = i; // right collision
+        collisions[2] = i; // right collision
       }
       if (
         i.x <= left + this.xSpeed &&
@@ -155,48 +172,20 @@ export default class Player {
         i.y < bottom &&
         top < i.y + i.height
       ) {
-        ret[3] = i; // left collision
+        collisions[3] = i; // left collision
       }
     });
-    if (ret[0] && (ret[0] == ret[2] || ret[0] == ret[3])) {
-      ret[0] = false;
-    } else if (ret[1] && (ret[1] == ret[2] || ret[1] == ret[3])) {
-      ret[1] = false;
+    if (
+      collisions[0] &&
+      (collisions[0] == collisions[2] || collisions[0] == collisions[3])
+    ) {
+      collisions[0] = false;
+    } else if (
+      collisions[1] &&
+      (collisions[1] == collisions[2] || collisions[1] == collisions[3])
+    ) {
+      collisions[1] = false;
     }
-    return ret;
-  }
-
-  draw(context) {
-    context.fillStyle = '#000';
-    context.fillRect(this.x, this.y, PLAYER_WIDTH, PLAYER_HEIGHT);
-
-    if (this.mouseX) {
-      context.lineWidth = 1;
-      context.strokeStyle = '#f00';
-      context.beginPath();
-      context.moveTo(this.getCenterX(), this.getCenterY());
-      context.lineTo(this.mouseX, this.mouseY);
-      context.stroke();
-
-      const deltaX = this.mouseX - this.getCenterX();
-      const deltaY = this.mouseY - this.getCenterY();
-
-      const angle = Math.atan(deltaY / deltaX);
-
-      let armEndX = Math.cos(angle) * PLAYER_ARM_LENGTH;
-      let armEndY = Math.sin(angle) * PLAYER_ARM_LENGTH;
-
-      if (deltaX < 0) {
-        armEndX = -armEndX;
-        armEndY = -armEndY;
-      }
-
-      context.lineWidth = PLAYER_ARM_WIDHT;
-      context.strokeStyle = '#000';
-      context.beginPath();
-      context.moveTo(this.getCenterX(), this.getCenterY());
-      context.lineTo(this.getCenterX() + armEndX, this.getCenterY() + armEndY);
-      context.stroke();
-    }
+    return collisions;
   }
 }

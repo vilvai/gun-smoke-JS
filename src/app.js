@@ -1,4 +1,4 @@
-import Player, { OtherPlayer } from './player.js';
+import Player, { GenericPlayer } from './player.js';
 import Platform from './platform.js';
 import Camera from './camera.js';
 
@@ -67,6 +67,7 @@ ctx.update = () => {
     allPlayersDataById[playerId] = {
       x: player.x,
       y: player.y,
+      angle: player.angle,
     };
   }
 
@@ -106,7 +107,7 @@ export const startGame = connection => {
   if (playerIsHost) {
     connectionsById[connection.peer] = connection;
     player = new Player(180, 300);
-    otherPlayersById[connection.peer] = new OtherPlayer(780, 300);
+    otherPlayersById[connection.peer] = new GenericPlayer(780, 300);
     allPlayersDataById[connection.peer] = {
       x: 780,
       y: 300,
@@ -114,7 +115,7 @@ export const startGame = connection => {
   } else {
     hostConnection = connection;
     player = new Player(780, 300);
-    otherPlayersById[connection.peer] = new OtherPlayer(180, 300);
+    otherPlayersById[connection.peer] = new GenericPlayer(180, 300);
     allPlayersDataById[connection.peer] = {
       x: 180,
       y: 300,
