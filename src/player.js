@@ -126,7 +126,7 @@ export default class Player extends GenericPlayer {
   }
 
   jump(collisions) {
-    if (collisions[0]) {
+    if (collisions[0] && this.ySpeed == 0) {
       this.ySpeed = -PLAYER_JUMP_POWER;
     } else if (collisions[2] && this.xSpeed > 0) {
       this.ySpeed = -PLAYER_JUMP_POWER;
@@ -138,7 +138,7 @@ export default class Player extends GenericPlayer {
   }
 
   drop(collisions) {
-    if (collisions[0]) {
+    if (collisions[0] && this.ySpeed == 0) {
       if (!collisions[0].hasCollision) {
         collisions[0] = false;
       }
