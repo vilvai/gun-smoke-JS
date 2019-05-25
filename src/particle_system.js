@@ -1,6 +1,6 @@
 function rand(min,max){return Math.random() * (max ?(max-min) : min) + (max ? min : 0) }
 
-export class Sprite{
+/*class Sprite{
   constructor(){
     this.x = 0;
     this.y = 0;
@@ -14,7 +14,7 @@ export class Sprite{
     this.alfa = 1;
     this.img = new Image();
   }
-}
+} */
 
 export default class ParticleSystem {
 	constructor(x,y, spriteCount, imageName){
@@ -22,28 +22,29 @@ export default class ParticleSystem {
 		this.y = y;
 		this.spriteCount = spriteCount;
 		this.imageName = imageName;
-		this.sprite = function(){
+		this.sprite = []
+	}
+	setup(){
 
-			var ready_sprites = [];
+		var ready_sprites = [];
 
-			for (var i = 0; i < 50; i++) {
+		for (var i = 0; i < 50; i++) {
 
-		      var temp_sprite = new Sprite();
+				var temp_sprite = {x: 0, y: 0,	xr: 0, yr: 0, r: 1,	scale: 0.005, dx: rand(-1,1), dy: rand(-1,1), dr: 0.1,	alfa: 1, img: new Image()};
 
-		      ready_sprites.push(temp_sprite);
-		      ready_sprites[i].img.src = 'small_doggo.png';
-		      ready_sprites[i].x = 700;
-		      ready_sprites[i].y = 700;
+				ready_sprites.push(temp_sprite);
+				ready_sprites[i].img.src = "./small_doggo.png";
+				ready_sprites[i].x = 700;
+				ready_sprites[i].y = 300;
 
-			}
-			console.log(ready_sprites);
-			return ready_sprites;
-		};
+		}
+		console.log(ready_sprites);
+		this.sprite = ready_sprites;
 	}
 	draw(context){
 
 		for (var i=0;i<this.sprite.length;i++){
-	      this.sprites[i].scale += 0.003;
+	      this.sprite[i].scale += 0.003;
 
 	      this.sprite[i].x += this.sprite[i].dx;
 	      this.sprite[i].y += this.sprite[i].dy;
@@ -56,19 +57,19 @@ export default class ParticleSystem {
 	      this.sprite[i].yr = ((this.sprite[i].y % ihM) + ihM) % ihM - this.sprite[i].img.height * this.sprite[i].scale;
 	      
 	      if (this.sprite[i].alfa >= 0.01) {
-	        this.sprite[i].alfa -= Math.exp((Date.now()-this.enter_time)/1000000) -1 ;
-	        console.log(Math.exp((Date.now()-this.enter_time)/1000000)-1); 
+	        this.sprite[i].alfa -= 0.005;
 	      }
 	      else{
-	        this.sprite[i].alfa = 0;
+					this.sprite[i].alfa = 0;
+					this.setup();
 	      }
 
 	      function drawImageCenter(image, x, y, cx, cy, scale, rotation, ctx, alfa){
-			    ctx.setTransform(scale, 0, 0, scale, x, y); // sets scale and origin
+			    ctx.setTransform(scale, 0, 0, scale, x, y);
 			    ctx.rotate(rotation);
 			    ctx.globalAlpha = alfa
 			    ctx.drawImage(image, -cx, -cy);
-			}
+				}
 			
 	      drawImageCenter(this.sprite[i].img,this.sprite[i].x,this.sprite[i].y,185.5,185.5,this.sprite[i].scale,this.sprite[i].r, context,this.sprite[i].alfa);
 

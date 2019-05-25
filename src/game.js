@@ -3,7 +3,6 @@ import Sketch from './lib/sketch.js';
 import Player, { GenericPlayer } from './player.js';
 import Platform from './platform.js';
 import Camera from './camera.js';
-import Sprite from './particle_system.js';
 import ParticleSystem from './particle_system.js';
 
 
@@ -35,6 +34,8 @@ const platforms = [
 
 
 var sytem = new ParticleSystem(360,640,50,'small_doggo.png');
+sytem.setup();
+console.log(sytem.sprite);
 
 const getHostId = address => {
   const hrefArray = window.location.href.split('?');
@@ -151,6 +152,7 @@ export default class Game {
       Object.values(otherPlayersById).forEach(otherPlayer => otherPlayer.draw(ctx));
       //particle_systems.forEach(system => system.draw(ctx));
       sytem.draw(ctx);
+
       ;
     };
   }
