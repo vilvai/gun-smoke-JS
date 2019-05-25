@@ -9,12 +9,24 @@ import {
   PLAYER_GRAVITY,
   PLAYER_ARM_LENGTH,
   PLAYER_ARM_WIDHT,
+  HAT_WIDTH,
+  HAT_HEIGHT,
 } from './player_constants.js';
+import Hat from './hat.js';
 
 export class GenericPlayer {
   constructor(x, y) {
     this.x = x;
     this.y = y;
+    this.lives = 1;
+  }
+
+  isDead() {
+    if (this.lives == 0) return true;
+    else {
+      this.hat = false;
+      return false;
+    }
   }
 
   getArmStartX() {
@@ -34,6 +46,13 @@ export class GenericPlayer {
   draw(context) {
     context.fillStyle = '#000';
     context.fillRect(this.x, this.y, PLAYER_WIDTH, PLAYER_HEIGHT);
+
+    if (!this.hat) {
+      this.hat = new Hat(this.x, this.y);
+      this.hat.draw(context);
+    } else {
+      this.hat.draw(context);
+    }
 
     if (this.angle) {
       const armEndX = Math.cos(this.angle) * PLAYER_ARM_LENGTH;
@@ -99,9 +118,7 @@ export default class Player extends GenericPlayer {
     this.y += this.ySpeed;
     this.x += this.xSpeed;
 
-    if (this.y > 1500) {
-      this.y = -PLAYER_HEIGHT;
-    }
+    if (this.hat) this.hat.update(this.x, this.y, this.isDead());
 
     const deltaX = mouseX - this.getArmStartX();
     const deltaY = mouseY - this.getArmStartY();

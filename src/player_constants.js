@@ -8,3 +8,6 @@ export const PLAYER_JUMP_POWER = 14;
 export const PLAYER_GRAVITY = 0.5;
 export const PLAYER_ARM_LENGTH = 40;
 export const PLAYER_ARM_WIDHT = 20;
+
+export const HAT_WIDTH = 70;
+export const HAT_HEIGHT = 20;
