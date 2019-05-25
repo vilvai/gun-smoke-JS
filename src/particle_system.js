@@ -29,7 +29,7 @@ export default class ParticleSystem {
 				ready_sprites[i].y = this.y;
 
 		}
-		console.log(ready_sprites);
+		
 		this.sprite = ready_sprites;
 	}
 	draw(context){
