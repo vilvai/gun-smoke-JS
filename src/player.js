@@ -48,6 +48,10 @@ export class GenericPlayer {
         this.getArmStartY() + armEndY
       );
       context.stroke();
+      const gunImage = new Image();
+      gunImage.src = 'images/gun.png';
+      context.rotate(2);
+      context.drawImage(gunImage, this.x, this.y);
     }
   }
 }
