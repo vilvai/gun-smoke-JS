@@ -3,6 +3,9 @@ import Sketch from './lib/sketch.js';
 import Player, { GenericPlayer } from './player.js';
 import Platform from './platform.js';
 import Camera from './camera.js';
+import Sprite from './particle_system.js';
+import ParticleSystem from './particle_system.js';
+
 
 import { setupPeer, connectToHost } from './network/util.js';
 
@@ -29,6 +32,9 @@ const platforms = [
   new Platform(390, 310, 500, 20, false),
   // new Platform(340, 500, 600, 30, false),
 ];
+
+
+var sytem = new ParticleSystem(360,640,50,'small_doggo.png');
 
 const getHostId = address => {
   const hrefArray = window.location.href.split('?');
@@ -136,13 +142,16 @@ export default class Game {
     ctx.draw = () => {
       ctx.fillStyle = '#cef';
       ctx.fillRect(0, 0, ctx.width, ctx.height);
+
+      
       platforms.forEach(platform => platform.draw(ctx));
       if (player) {
         player.draw(ctx);
       }
-      Object.values(otherPlayersById).forEach(otherPlayer =>
-        otherPlayer.draw(ctx)
-      );
+      Object.values(otherPlayersById).forEach(otherPlayer => otherPlayer.draw(ctx));
+      //particle_systems.forEach(system => system.draw(ctx));
+      sytem.draw(ctx);
+      ;
     };
   }
 }
