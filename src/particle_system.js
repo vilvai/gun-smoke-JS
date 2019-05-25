@@ -1,20 +1,11 @@
 function rand(min,max){return Math.random() * (max ?(max-min) : min) + (max ? min : 0) }
 
-/*class Sprite{
-  constructor(){
-    this.x = 0;
-    this.y = 0;
-    this.xr = 0;
-    this.yr = 0;
-    this.r = 1;
-    this.scale = 0;
-    this.dx = 1;
-    this.dy = 1;
-    this.dr = 1;
-    this.alfa = 1;
-    this.img = new Image();
-  }
-} */
+function drawImageCenter(image, x, y, cx, cy, scale, rotation, ctx, alfa){
+	ctx.setTransform(scale, 0, 0, scale, x, y);
+	ctx.rotate(rotation);
+	ctx.globalAlpha = alfa
+	ctx.drawImage(image, -cx, -cy);
+}
 
 export default class ParticleSystem {
 	constructor(x,y, spriteCount, imageName){
@@ -28,14 +19,14 @@ export default class ParticleSystem {
 
 		var ready_sprites = [];
 
-		for (var i = 0; i < 50; i++) {
+		for (var i = 0; i < this.spriteCount; i++) {
 
 				var temp_sprite = {x: 0, y: 0,	xr: 0, yr: 0, r: 1,	scale: 0.005, dx: rand(-1,1), dy: rand(-1,1), dr: 0.1,	alfa: 1, img: new Image()};
 
 				ready_sprites.push(temp_sprite);
-				ready_sprites[i].img.src = "./small_doggo.png";
-				ready_sprites[i].x = 700;
-				ready_sprites[i].y = 300;
+				ready_sprites[i].img.src = this.imageName;
+				ready_sprites[i].x = this.x;
+				ready_sprites[i].y = this.y;
 
 		}
 		console.log(ready_sprites);
@@ -64,13 +55,6 @@ export default class ParticleSystem {
 					this.setup();
 	      }
 
-	      function drawImageCenter(image, x, y, cx, cy, scale, rotation, ctx, alfa){
-			    ctx.setTransform(scale, 0, 0, scale, x, y);
-			    ctx.rotate(rotation);
-			    ctx.globalAlpha = alfa
-			    ctx.drawImage(image, -cx, -cy);
-				}
-			
 	      drawImageCenter(this.sprite[i].img,this.sprite[i].x,this.sprite[i].y,185.5,185.5,this.sprite[i].scale,this.sprite[i].r, context,this.sprite[i].alfa);
 
 	      context.setTransform(1,0,0,1,0,0);

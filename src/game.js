@@ -32,10 +32,10 @@ const platforms = [
   // new Platform(340, 500, 600, 30, false),
 ];
 
-
-var sytem = new ParticleSystem(360,640,50,'small_doggo.png');
-sytem.setup();
-console.log(sytem.sprite);
+const particle_systems = [
+  new ParticleSystem(360,640,50,'small_doggo.png'),
+  new ParticleSystem(640,640,100,'small_doggo.png')
+];
 
 const getHostId = address => {
   const hrefArray = window.location.href.split('?');
@@ -93,6 +93,8 @@ export default class Game {
       autopause: false,
     });
     ctx.setup = () => {
+      particle_systems.forEach(system => system.setup());
+
       const hostId = getHostId(window.location.href);
 
       const onError = alert;
@@ -144,16 +146,13 @@ export default class Game {
       ctx.fillStyle = '#cef';
       ctx.fillRect(0, 0, ctx.width, ctx.height);
 
-      
       platforms.forEach(platform => platform.draw(ctx));
       if (player) {
         player.draw(ctx);
       }
       Object.values(otherPlayersById).forEach(otherPlayer => otherPlayer.draw(ctx));
-      //particle_systems.forEach(system => system.draw(ctx));
-      sytem.draw(ctx);
+      particle_systems.forEach(system => system.draw(ctx));
 
-      ;
     };
   }
 }
