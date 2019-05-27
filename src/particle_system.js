@@ -14,6 +14,7 @@ export default class ParticleSystem {
 		this.spriteCount = spriteCount;
 		this.imageName = imageName;
 		this.sprite = []
+		this.sprite.length = 0;
 	}
 	setup(){
 
@@ -33,7 +34,7 @@ export default class ParticleSystem {
 		this.sprite = ready_sprites;
 	}
 	draw(context){
-
+		if(this.sprite.length == 0){this.setup()};
 		for (var i=0;i<this.sprite.length;i++){
 	      this.sprite[i].scale += 0.003;
 
