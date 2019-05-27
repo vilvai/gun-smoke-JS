@@ -87,7 +87,12 @@ export default class Game {
     });
     ctx.setup = () => {
       const hostId = getHostId(window.location.href);
-
+      if (hostId == 'DEBUG') {
+        removeOverlayText();
+        playerIsHost = true;
+        player = new Player(180, 300);
+        return;
+      }
       const onError = alert;
       let onResolve;
 

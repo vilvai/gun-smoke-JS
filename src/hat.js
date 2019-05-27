@@ -37,7 +37,6 @@ export default class Hat {
   }
 
   draw(context) {
-    context.save();
     context.fillStyle = '#666';
     context.translate(this.x + PLAYER_WIDTH / 2, this.y + HAT_HEIGHT);
     context.rotate(this.angle * TO_RADIANS);
@@ -60,6 +59,6 @@ export default class Hat {
       HAT_WIDTH / 14,
       HAT_HEIGHT / 2
     );
-    context.restore();
+    context.setTransform(1, 0, 0, 1, 0, 0);
   }
 }
