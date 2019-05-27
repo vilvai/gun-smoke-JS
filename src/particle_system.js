@@ -49,7 +49,7 @@ export default class ParticleSystem {
 	      this.sprite[i].yr = ((this.sprite[i].y % ihM) + ihM) % ihM - this.sprite[i].img.height * this.sprite[i].scale;
 	      
 	      if (this.sprite[i].alfa >= 0.01) {
-	        this.sprite[i].alfa -= 0.005;
+	        this.sprite[i].alfa -= 0.05;
 	      }
 	      else{
 					this.sprite[i].alfa = 0;

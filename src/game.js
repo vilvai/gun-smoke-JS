@@ -152,8 +152,16 @@ export default class Game {
       platforms.forEach(platform => platform.draw(ctx));
       if (player) {
         player.draw(ctx);
+        particle_systems[0].x = player.x;
+        particle_systems[0].y = player.y;
+
       }
-      Object.values(otherPlayersById).forEach(otherPlayer => otherPlayer.draw(ctx));
+      Object.values(otherPlayersById).forEach(
+      	otherPlayer => {
+      		otherPlayer.draw(ctx);
+      		particle_systems[1].x = otherPlayer.x;
+      		particle_systems[1].y = otherPlayer.y;
+      	});
       
       particle_systems.forEach(system => system.draw(ctx));
 
