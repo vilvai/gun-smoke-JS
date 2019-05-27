@@ -18,7 +18,7 @@ import {
 import Hat from './hat.js';
 
 const gunImage = new Image();
-gunImage.src = 'images/gun.png';
+gunImage.src = 'images/gun_abstract.png';
 
 export class GenericPlayer {
   constructor(x, y) {
