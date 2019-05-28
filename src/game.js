@@ -42,10 +42,56 @@ const getHostId = address => {
   return hrefArray[1].split('host=')[1];
 };
 
+const sendPlayerData = () => {
+  if (playerIsHost) {
+    Object.values(connectionsById).forEach(connection =>
+      connection.send({
+        type: 'players',
+        players: allPlayersDataById,
+      })
+    );
+  } else {
+    hostConnection.send({
+      type: 'players',
+      players: {
+        [playerId]: allPlayersDataById[playerId],
+      },
+    });
+  }
+};
+
+const sendBulletData = (x, y, angle) => {
+  if (playerIsHost) {
+    Object.values(connectionsById).forEach(connection =>
+      connection.send({
+        type: 'bullet',
+        x,
+        y,
+        angle,
+      })
+    );
+  } else {
+    hostConnection.send({
+      type: 'bullet',
+      x,
+      y,
+      angle,
+    });
+  }
+};
+
 export const onReceiveData = data => {
-  Object.entries(data).forEach(
-    ([id, playerData]) => (allPlayersDataById[id] = playerData)
-  );
+  if (!data.type) return;
+  switch (data.type) {
+    case 'players':
+      Object.entries(data.players).forEach(
+        ([id, playerData]) => (allPlayersDataById[id] = playerData)
+      );
+      break;
+    case 'bullet':
+      createBullet(data.x, data.y, data.angle);
+    default:
+  }
 };
 
 export const startGame = connection => {
@@ -70,6 +116,11 @@ export const startGame = connection => {
 };
 
 const onShoot = (x, y, angle) => {
+  sendBulletData(x, y, angle);
+  createBullet(x, y, angle);
+};
+
+const createBullet = (x, y, angle) => {
   bullets.push(new Bullet(x, y, angle));
 };
 
@@ -137,36 +188,27 @@ export default class Game {
           mouseClicked,
           onShoot
         );
-        mouseClicked = false;
         allPlayersDataById[playerId] = {
           x: player.x,
           y: player.y,
           angle: player.angle,
+          gunRecoil: player.gunRecoil,
         };
       }
 
       Object.entries(otherPlayersById).forEach(([id, otherPlayer]) =>
         otherPlayer.update(allPlayersDataById[id])
       );
-      if (playerIsHost) {
-        Object.values(connectionsById).forEach(connection =>
-          connection.send(allPlayersDataById)
-        );
-      } else {
-        hostConnection.send({
-          [playerId]: allPlayersDataById[playerId],
-        });
-      }
       bullets.forEach(bullet => bullet.update(onRemoveBullet));
+      mouseClicked = false;
+      sendPlayerData();
     };
     ctx.draw = () => {
       ctx.fillStyle = '#cef';
       ctx.fillRect(0, 0, ctx.width, ctx.height);
       platforms.forEach(platform => platform.draw(ctx));
       bullets.forEach(bullet => bullet.draw(ctx));
-      if (player) {
-        player.draw(ctx);
-      }
+      if (player) player.draw(ctx);
       Object.values(otherPlayersById).forEach(otherPlayer =>
         otherPlayer.draw(ctx)
       );

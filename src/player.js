@@ -63,10 +63,11 @@ export class GenericPlayer {
     );
   }
 
-  update({ x, y, angle }) {
+  update({ x, y, angle, gunRecoil }) {
     this.x = x;
     this.y = y;
     this.angle = angle;
+    this.gunRecoil = gunRecoil;
     this.hat.update(this.x, this.y, this.lives == 0);
   }
 
