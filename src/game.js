@@ -1,8 +1,9 @@
 import Sketch from './lib/sketch.js';
 
+import { GAME_WIDTH, GAME_HEIGHT } from './constants.js';
 import Player, { GenericPlayer } from './player.js';
 import Platform from './platform.js';
-import Camera from './camera.js';
+import Bullet from './bullet.js';
 
 import { setupPeer, connectToHost } from './network/util.js';
 
@@ -14,6 +15,8 @@ const allPlayersDataById = {};
 export let playerIsHost = false;
 const connectionsById = {};
 let hostConnection;
+
+let mouseClicked = false;
 
 const platforms = [
   // bounding box
@@ -29,6 +32,8 @@ const platforms = [
   new Platform(390, 310, 500, 20, false),
   // new Platform(340, 500, 600, 30, false),
 ];
+
+let bullets = [];
 
 const getHostId = address => {
   const hrefArray = window.location.href.split('?');
@@ -64,6 +69,14 @@ export const startGame = connection => {
   }
 };
 
+const onShoot = (x, y, angle) => {
+  bullets.push(new Bullet(x, y, angle));
+};
+
+const onRemoveBullet = bulletToRemove => {
+  bullets = bullets.filter(bullet => bullet != bulletToRemove);
+};
+
 const updateOverlayText = text =>
   (document.getElementById('loading-overlay').innerHTML = text);
 
@@ -80,8 +93,8 @@ export default class Game {
   constructor() {
     const ctx = Sketch.create({
       container: document.getElementById('sketch-container'),
-      width: 1280,
-      height: 720,
+      width: GAME_WIDTH,
+      height: GAME_HEIGHT,
       fullscreen: false,
       autopause: false,
     });
@@ -113,10 +126,18 @@ export default class Game {
       }
       setupPeer.then(onResolve, onError);
     };
-
+    ctx.mousedown = () => (mouseClicked = true);
     ctx.update = () => {
       if (player) {
-        player.update(ctx.keys, platforms, ctx.mouse.x, ctx.mouse.y);
+        player.update(
+          ctx.keys,
+          platforms,
+          ctx.mouse.x,
+          ctx.mouse.y,
+          mouseClicked,
+          onShoot
+        );
+        mouseClicked = false;
         allPlayersDataById[playerId] = {
           x: player.x,
           y: player.y,
@@ -136,12 +157,13 @@ export default class Game {
           [playerId]: allPlayersDataById[playerId],
         });
       }
+      bullets.forEach(bullet => bullet.update(onRemoveBullet));
     };
-
     ctx.draw = () => {
       ctx.fillStyle = '#cef';
       ctx.fillRect(0, 0, ctx.width, ctx.height);
       platforms.forEach(platform => platform.draw(ctx));
+      bullets.forEach(bullet => bullet.draw(ctx));
       if (player) {
         player.draw(ctx);
       }

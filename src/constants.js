@@ -1,3 +1,6 @@
+export const GAME_WIDTH = 1280;
+export const GAME_HEIGHT = 720;
+
 export const PLAYER_HEIGHT = 80;
 export const PLAYER_WIDTH = 40;
 export const PLAYER_ARM_LENGTH = 40;
@@ -9,10 +12,14 @@ export const PLAYER_MAX_X_SPEED = 8;
 export const PLAYER_MAX_Y_SPEED = 20;
 export const PLAYER_JUMP_POWER = 14;
 export const PLAYER_GRAVITY = 0.5;
+export const PLAYER_SHOOT_COOLDOWN = 20;
 
 export const GUN_SIZE = 0.7;
 export const GUN_OFFSET_X = -30;
 export const GUN_OFFSET_Y = -25;
+
+export const BULLET_SPEED = 25;
+export const BULLET_DROP = 0.1;
 
 export const HAT_WIDTH = 70;
 export const HAT_HEIGHT = 20;

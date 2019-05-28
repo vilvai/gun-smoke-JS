@@ -6,7 +6,7 @@ import './App.css';
 
 export default class App extends Component {
   componentDidMount() {
-    this.game = new Game();
+    new Game();
   }
   render() {
     return (

@@ -14,11 +14,10 @@ import {
   GUN_SIZE,
   GUN_OFFSET_X,
   GUN_OFFSET_Y,
-} from './player_constants.js';
+  PLAYER_SHOOT_COOLDOWN,
+} from './constants.js';
 import Hat from './hat.js';
-
-const gunImage = new Image();
-gunImage.src = 'images/gun_abstract.png';
+import Gun from './gun.js';
 
 export class GenericPlayer {
   constructor(x, y) {
@@ -26,6 +25,8 @@ export class GenericPlayer {
     this.y = y;
     this.lives = 1;
     this.hat = new Hat(this.x, this.y);
+    this.gun = new Gun(this.x, this.y);
+    this.gunRecoil = 0;
   }
 
   getArmStartX() {
@@ -34,6 +35,32 @@ export class GenericPlayer {
 
   getArmStartY() {
     return this.y + PLAYER_HEIGHT / 2;
+  }
+
+  getArmEndX() {
+    return this.getArmStartX() + Math.cos(this.angle) * PLAYER_ARM_LENGTH;
+  }
+
+  getArmEndY() {
+    return this.getArmStartY() + Math.sin(this.angle) * PLAYER_ARM_LENGTH;
+  }
+
+  getGunBarrelX() {
+    const direction = this.angle > Math.PI / 2 ? -1 : 1;
+    return (
+      this.getArmEndX() +
+      Math.cos(this.angle) * ((100 - 2 + GUN_OFFSET_X) * GUN_SIZE) -
+      Math.sin(this.angle) * GUN_OFFSET_Y * GUN_SIZE * direction
+    );
+  }
+
+  getGunBarrelY() {
+    const direction = this.angle > Math.PI / 2 ? -1 : 1;
+    return (
+      this.getArmEndY() +
+      Math.sin(this.angle) * ((100 - 2 + GUN_OFFSET_X) * GUN_SIZE) +
+      Math.cos(this.angle) * GUN_OFFSET_Y * GUN_SIZE * direction
+    );
   }
 
   update({ x, y, angle }) {
@@ -49,10 +76,8 @@ export class GenericPlayer {
     this.hat.draw(context);
 
     if (this.angle) {
-      const armEndX =
-        this.getArmStartX() + Math.cos(this.angle) * PLAYER_ARM_LENGTH;
-      const armEndY =
-        this.getArmStartY() + Math.sin(this.angle) * PLAYER_ARM_LENGTH;
+      const armEndX = this.getArmEndX();
+      const armEndY = this.getArmEndY();
 
       context.lineWidth = PLAYER_ARM_WIDTH;
       context.strokeStyle = '#000';
@@ -61,21 +86,7 @@ export class GenericPlayer {
       context.lineTo(armEndX, armEndY);
       context.stroke();
 
-      context.translate(armEndX, armEndY);
-      if (this.angle > Math.PI / 2) {
-        context.scale(-GUN_SIZE, GUN_SIZE);
-        context.rotate(-this.angle + Math.PI);
-      } else {
-        context.scale(GUN_SIZE, GUN_SIZE);
-        context.rotate(this.angle);
-      }
-      context.translate(-armEndX, -armEndY);
-      context.drawImage(
-        gunImage,
-        armEndX + GUN_OFFSET_X,
-        armEndY + GUN_OFFSET_Y
-      );
-      context.setTransform(1, 0, 0, 1, 0, 0);
+      this.gun.draw(context, armEndX, armEndY, this.angle, this.gunRecoil);
     }
   }
 }
@@ -85,9 +96,16 @@ export default class Player extends GenericPlayer {
     super(x, y);
     this.xSpeed = 0;
     this.ySpeed = 0;
+    this.gunRecoilForce = 0;
+    this.gunRecoilReturn = 0;
+    this.armRecoil = 0;
+    this.armRecoilForce = 0;
+    this.armRecoilReturn = 0;
+    this.armRecoilDelay = 0;
+    this.gunCooldown = 0;
   }
 
-  update(keys, platforms, mouseX, mouseY) {
+  update(keys, platforms, mouseX, mouseY, mouseClicked, onShoot) {
     const collisions = this.collision(platforms);
     if (keys.D) {
       this.moveRight(collisions);
@@ -137,8 +155,36 @@ export default class Player extends GenericPlayer {
     const deltaX = mouseX - this.getArmStartX();
     const deltaY = mouseY - this.getArmStartY();
 
-    this.angle = -Math.atan2(deltaX, deltaY) + Math.PI / 2;
     this.hat.update(this.x, this.y, this.lives <= 0);
+    this.angle = -Math.atan2(deltaX, deltaY) + Math.PI / 2;
+
+    if (mouseClicked && this.gunCooldown <= 0) {
+      this.gunRecoilForce = 0.32;
+      this.gunRecoilReturn = -0.04;
+      this.armRecoilForce = 0.4;
+      this.armRecoilReturn = 0;
+      this.armRecoilDelay = 2;
+      this.gunCooldown = PLAYER_SHOOT_COOLDOWN;
+      onShoot(this.getGunBarrelX(), this.getGunBarrelY(), this.angle);
+    }
+    this.gunCooldown -= 1;
+    this.gunRecoil = Math.max(
+      this.gunRecoil + this.gunRecoilForce - this.gunRecoilReturn,
+      0
+    );
+    this.gunRecoilForce *= 0.6;
+    this.gunRecoilReturn = Math.min(this.gunRecoilReturn + 0.024, 0.096);
+    if (this.armRecoilDelay == 0) {
+      this.armRecoil = Math.max(
+        this.armRecoil + this.armRecoilForce - this.armRecoilReturn,
+        0
+      );
+      this.armRecoilReturn = Math.min(this.armRecoilReturn + 0.02, 0.1);
+      this.armRecoilForce *= 0.75;
+    } else this.armRecoilDelay -= 1;
+
+    if (this.angle > Math.PI / 2) this.angle += this.armRecoil * 0.5;
+    else this.angle -= this.armRecoil * 0.5;
   }
 
   moveRight(collisions) {
@@ -170,11 +216,8 @@ export default class Player extends GenericPlayer {
   }
 
   drop(collisions) {
-    if (collisions[0] && this.ySpeed == 0) {
-      if (!collisions[0].hasCollision) {
-        collisions[0] = false;
-      }
-    }
+    if (collisions[0] && !collisions[0].hasCollision && this.ySpeed == 0)
+      collisions[0] = false;
   }
 
   collision(platforms) {

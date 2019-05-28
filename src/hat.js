@@ -1,13 +1,9 @@
 import {
   PLAYER_WIDTH,
   PLAYER_HEIGHT,
-  PLAYER_DRAG,
-  PLAYER_MAX_Y_SPEED,
-  PLAYER_MAX_X_SPEED,
-  PLAYER_GRAVITY,
   HAT_WIDTH,
   HAT_HEIGHT,
-} from './player_constants.js';
+} from './constants.js';
 
 var TO_RADIANS = Math.PI / 180;
 
@@ -15,9 +11,9 @@ export default class Hat {
   constructor(x, y) {
     this.x = x;
     this.y = y;
-    this.ySpeed = -PLAYER_MAX_Y_SPEED / 2;
+    this.ySpeed = -10;
     const direction = Math.round(Math.random()) * 2 - 1; // -1 (left) or 1 (right)
-    this.xSpeed = direction * PLAYER_MAX_X_SPEED;
+    this.xSpeed = direction * 8;
     this.rotation = direction * (Math.floor(Math.random() * 5) + 20);
     this.angle = 0;
   }
@@ -27,8 +23,8 @@ export default class Hat {
       this.x = x;
       this.y = y;
     } else {
-      this.ySpeed = Math.min(this.ySpeed + PLAYER_GRAVITY, PLAYER_MAX_Y_SPEED);
-      this.xSpeed *= 1 - PLAYER_DRAG / 4;
+      this.ySpeed = Math.min(this.ySpeed + 0.5, 20);
+      this.xSpeed *= 0.95;
       if (Math.abs(this.xSpeed) < 0.1) this.xSpeed = 0;
       this.angle += this.rotation;
       this.rotation *= 0.97;
