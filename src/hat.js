@@ -15,9 +15,10 @@ export default class Hat {
   constructor(x, y) {
     this.x = x;
     this.y = y;
-    this.ySpeed = -PLAYER_MAX_Y_SPEED / 4;
-    this.xSpeed = PLAYER_MAX_X_SPEED;
-    this.rotation = Math.floor(Math.random() * 10) + 1;
+    this.ySpeed = -PLAYER_MAX_Y_SPEED / 2;
+    const direction = Math.round(Math.random()) * 2 - 1; // -1 (left) or 1 (right)
+    this.xSpeed = direction * PLAYER_MAX_X_SPEED;
+    this.rotation = direction * (Math.floor(Math.random() * 5) + 20);
     this.angle = 0;
   }
 
@@ -27,9 +28,10 @@ export default class Hat {
       this.y = y;
     } else {
       this.ySpeed = Math.min(this.ySpeed + PLAYER_GRAVITY, PLAYER_MAX_Y_SPEED);
-      this.xSpeed *= 1 - PLAYER_DRAG / 8;
+      this.xSpeed *= 1 - PLAYER_DRAG / 4;
       if (Math.abs(this.xSpeed) < 0.1) this.xSpeed = 0;
       this.angle += this.rotation;
+      this.rotation *= 0.97;
 
       this.x += this.xSpeed;
       this.y += this.ySpeed;
@@ -38,8 +40,9 @@ export default class Hat {
 
   draw(context) {
     context.fillStyle = '#666';
-    context.translate(this.x + PLAYER_WIDTH / 2, this.y + HAT_HEIGHT);
+    context.translate(this.x + PLAYER_WIDTH / 2, this.y + HAT_HEIGHT / 2);
     context.rotate(this.angle * TO_RADIANS);
+    context.translate(0, HAT_HEIGHT / 2);
     context.fillRect(-PLAYER_WIDTH / 2, -HAT_HEIGHT, PLAYER_WIDTH, HAT_HEIGHT);
     context.fillRect(
       -HAT_WIDTH / 2,

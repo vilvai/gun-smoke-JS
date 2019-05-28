@@ -106,6 +106,10 @@ export default class Player extends GenericPlayer {
     if (keys.S) {
       this.drop(collisions);
     }
+    if (keys.R) {
+      this.lives = 1;
+      this.hat = new Hat(this.x, this.y);
+    }
     if (keys.E) {
       this.lives -= 1;
     }
