@@ -1,6 +1,7 @@
 import Sketch from './lib/sketch.js';
 
 import { GAME_WIDTH, GAME_HEIGHT, COUNTDOWN } from './constants.js';
+import { GAME_STATES } from './app.js';
 import Player, { GenericPlayer } from './player.js';
 import Platform from './platform.js';
 import Bullet from './bullet.js';
@@ -81,18 +82,17 @@ const sendBulletData = (x, y, angle) => {
   }
 };
 
+export const countdownHandler = () => {
+  if (
+    !Object.values(allPlayersDataById).filter(player => player.ready == false)
+      .length &&
+    countdown != 0
+  )
+    countdown -= 1;
+  else countdown = COUNTDOWN;
+  console.log(countdown);
 
-export const countdownHandler = ()=>{
-    if(!Object.values(allPlayersDataById)
-    .filter((player)=>(player.ready==false))
-    .length && countdown != 0)
-      countdown -= 1;
-    else
-      countdown = COUNTDOWN;
-    console.log(countdown);
-    
-    if (countdown==0)
-      return true;
+  if (countdown == 0) return true;
 };
 
 export const onReceiveData = data => {
@@ -105,25 +105,30 @@ export const onReceiveData = data => {
       break;
     case 'bullet':
       createBullet(data.x, data.y, data.angle);
-      break
+      break;
     case 'round':
-        console.log("ROUND STARTED")
-        isRoundStarted = data.isRoundStarted
-        break
+      console.log('ROUND STARTED');
+      isRoundStarted = data.isRoundStarted;
+      break;
     default:
   }
 };
 
-const sendStartRound = () => playerIsHost ? Object.values(connectionsById).forEach(connection => connection.send({type: 'round', isRoundStarted: true})) : null;
+const sendStartRound = () =>
+  playerIsHost
+    ? Object.values(connectionsById).forEach(connection =>
+        connection.send({ type: 'round', isRoundStarted: true })
+      )
+    : null;
 
-export const startRound = ()=>{
-    if(!isRoundStarted){
-      if(countdownHandler()){
-        sendStartRound();
-        isRoundStarted = true;
-        return true;
-      };
-    };
+export const startRound = () => {
+  if (!isRoundStarted) {
+    if (countdownHandler()) {
+      sendStartRound();
+      isRoundStarted = true;
+      return true;
+    }
+  }
 };
 
 export const startGame = connection => {
@@ -148,7 +153,7 @@ export const startGame = connection => {
 };
 
 const onShoot = (x, y, angle) => {
-  if(isRoundStarted){
+  if (isRoundStarted) {
     sendBulletData(x, y, angle);
     createBullet(x, y, angle);
   }
@@ -162,11 +167,7 @@ const onRemoveBullet = bulletToRemove => {
   bullets = bullets.filter(bullet => bullet != bulletToRemove);
 };
 
-const updateOverlayText = text =>
-  (document.getElementById('loading-overlay').innerHTML = text);
-
 const removeOverlayText = () => {
-  document.getElementById('loading-overlay').remove();
   document.getElementById('sketch-container').style.filter = 'none';
 };
 
@@ -175,7 +176,7 @@ export const endGame = () => {
 };
 
 export default class Game {
-  constructor() {
+  constructor(onChangeGameState, onSetLinkText) {
     const ctx = Sketch.create({
       container: document.getElementById('sketch-container'),
       width: GAME_WIDTH,
@@ -186,6 +187,7 @@ export default class Game {
     ctx.setup = () => {
       const hostId = getHostId(window.location.href);
       if (hostId == 'DEBUG') {
+        onOverlayTextChange(null);
         removeOverlayText();
         playerIsHost = true;
         player = new Player(180, 300);
@@ -198,8 +200,8 @@ export default class Game {
         playerIsHost = true;
         onResolve = peer => {
           playerId = peer.id;
-          updateOverlayText(
-            'Share this link with a friend: <br>localhost:8080/?host=' + peer.id
+          onOverlayTextChange(
+            'Share this link with a friend: \nlocalhost:8080/?host=' + peer.id
           );
         };
       } else {
