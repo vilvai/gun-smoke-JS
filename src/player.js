@@ -12,13 +12,12 @@ import {
   HAT_WIDTH,
   HAT_HEIGHT,
   GUN_SIZE,
-  GUN_OFFSET_X,
-  GUN_OFFSET_Y,
+  GUN_POSITION_OFFSET_X,
+  GUN_POSITION_OFFSET_Y,
   PLAYER_SHOOT_COOLDOWN,
 } from './constants.js';
 import Hat from './hat.js';
 import Gun from './gun.js';
-import { isRoundStarted, startRound, playerIsHost } from './game.js';
 
 export class GenericPlayer {
   constructor(x, y) {
@@ -50,8 +49,8 @@ export class GenericPlayer {
     const direction = this.angle > Math.PI / 2 ? -1 : 1;
     return (
       this.getArmEndX() +
-      Math.cos(this.angle) * ((100 - 2 + GUN_OFFSET_X) * GUN_SIZE) -
-      Math.sin(this.angle) * GUN_OFFSET_Y * GUN_SIZE * direction
+      Math.cos(this.angle) * ((100 - 2 + GUN_POSITION_OFFSET_X) * GUN_SIZE) -
+      Math.sin(this.angle) * GUN_POSITION_OFFSET_Y * GUN_SIZE * direction
     );
   }
 
@@ -59,8 +58,8 @@ export class GenericPlayer {
     const direction = this.angle > Math.PI / 2 ? -1 : 1;
     return (
       this.getArmEndY() +
-      Math.sin(this.angle) * ((100 - 2 + GUN_OFFSET_X) * GUN_SIZE) +
-      Math.cos(this.angle) * GUN_OFFSET_Y * GUN_SIZE * direction
+      Math.sin(this.angle) * ((100 - 2 + GUN_POSITION_OFFSET_X) * GUN_SIZE) +
+      Math.cos(this.angle) * GUN_POSITION_OFFSET_Y * GUN_SIZE * direction
     );
   }
 
@@ -105,12 +104,55 @@ export default class Player extends GenericPlayer {
     this.armRecoilReturn = 0;
     this.armRecoilDelay = 0;
     this.gunCooldown = 0;
-    this.ready = false;
   }
 
-  update(keys, platforms, mouseX, mouseY, mouseClicked, onShoot) {
+  update(
+    keys,
+    platforms,
+    mouseX,
+    mouseY,
+    mouseClicked,
+    isRoundStarted,
+    onShoot
+  ) {
     const collisions = this.collision(platforms);
-    
+
+    if (isRoundStarted) {
+      if (keys.D) {
+        this.moveRight(collisions);
+      } else if (keys.A) {
+        this.moveLeft(collisions);
+      } else if (collisions[0]) {
+        this.xSpeed *= 1 - PLAYER_DRAG;
+        if (Math.abs(this.xSpeed) < 0.1) this.xSpeed = 0;
+      } else {
+        this.xSpeed *= 1 - PLAYER_DRAG / 8;
+      }
+      if (Math.abs(this.xSpeed) < 0.1) this.xSpeed = 0;
+      if (keys.W) {
+        this.jump(collisions);
+      }
+      if (keys.S) {
+        this.drop(collisions);
+      }
+      if (keys.R) {
+        this.lives = 1;
+        this.hat = new Hat(this.x, this.y);
+      }
+      if (keys.E) {
+        this.lives -= 1;
+      }
+      if (mouseClicked && this.gunCooldown <= 0) {
+        this.gunRecoilForce = 0.32;
+        this.gunRecoilReturn = -0.04;
+        this.armRecoilForce = 0.4;
+        this.armRecoilReturn = 0;
+        this.armRecoilDelay = 2;
+        this.gunCooldown = PLAYER_SHOOT_COOLDOWN;
+        onShoot(this.getGunBarrelX(), this.getGunBarrelY(), this.angle);
+      }
+    }
+
     this.ySpeed = Math.min(this.ySpeed + PLAYER_GRAVITY, PLAYER_MAX_Y_SPEED);
     if (collisions[0] && this.ySpeed > 0) {
       this.y = collisions[0].y - PLAYER_HEIGHT;
@@ -155,53 +197,7 @@ export default class Player extends GenericPlayer {
 
     if (this.angle > Math.PI / 2) this.angle += this.armRecoil * 0.5;
     else this.angle -= this.armRecoil * 0.5;
-
-    if (isRoundStarted){
-      if (keys.D) {
-        this.moveRight(collisions);
-      } else if (keys.A) {
-        this.moveLeft(collisions);
-      } else if (collisions[0]) {
-        this.xSpeed *= 1 - PLAYER_DRAG;
-        if (Math.abs(this.xSpeed) < 0.1) this.xSpeed = 0;
-      } else {
-        this.xSpeed *= 1 - PLAYER_DRAG / 8;
-      }
-      if (Math.abs(this.xSpeed) < 0.1) this.xSpeed = 0;
-      if (keys.W) {
-        this.jump(collisions);
-      }
-      if (keys.S) {
-        this.drop(collisions);
-      }
-      if (keys.R) {
-        this.lives = 1;
-        this.hat = new Hat(this.x, this.y);
-      }
-      if (keys.E) {
-        this.lives -= 1;
-      }
-      if (mouseClicked && this.gunCooldown <= 0) {
-        this.gunRecoilForce = 0.32;
-        this.gunRecoilReturn = -0.04;
-        this.armRecoilForce = 0.4;
-        this.armRecoilReturn = 0;
-        this.armRecoilDelay = 2;
-        this.gunCooldown = PLAYER_SHOOT_COOLDOWN;
-        onShoot(this.getGunBarrelX(), this.getGunBarrelY(), this.angle);
-      }
-    }else{
-        if (this.angle > 1 && this.angle <2.35){
-          this.ready = true;
-          if(playerIsHost)
-            startRound();
-        }
-        else{
-          this.ready = false;
-        };
-    };
-    
-  };
+  }
 
   moveRight(collisions) {
     if (collisions[0] && this.xSpeed < 0) this.xSpeed /= 4;

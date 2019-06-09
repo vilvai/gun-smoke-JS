@@ -1,4 +1,10 @@
-import { GUN_SIZE, GUN_OFFSET_X, GUN_OFFSET_Y } from './constants.js';
+import {
+  GUN_SIZE,
+  GUN_POSITION_OFFSET_X,
+  GUN_POSITION_OFFSET_Y,
+  GUN_RECOIL_CENTER_OFFSET_X,
+  GUN_RECOIL_CENTER_OFFSET_Y,
+} from './constants.js';
 
 const gunImage = new Image();
 gunImage.src = 'images/gun_abstract.png';
@@ -13,13 +19,20 @@ export default class Gun {
     context.translate(armEndX, armEndY);
     if (angle > Math.PI / 2) {
       context.scale(-GUN_SIZE, GUN_SIZE);
-      context.rotate(-angle - gunRecoil + Math.PI);
+      context.rotate(-angle + Math.PI);
     } else {
       context.scale(GUN_SIZE, GUN_SIZE);
-      context.rotate(angle - gunRecoil);
+      context.rotate(angle);
     }
+    context.translate(GUN_RECOIL_CENTER_OFFSET_X, GUN_RECOIL_CENTER_OFFSET_Y);
+    context.rotate(-gunRecoil);
+    context.translate(-GUN_RECOIL_CENTER_OFFSET_X, -GUN_RECOIL_CENTER_OFFSET_Y);
     context.translate(-armEndX, -armEndY);
-    context.drawImage(gunImage, armEndX + GUN_OFFSET_X, armEndY + GUN_OFFSET_Y);
+    context.drawImage(
+      gunImage,
+      armEndX + GUN_POSITION_OFFSET_X,
+      armEndY + GUN_POSITION_OFFSET_Y
+    );
     context.setTransform(1, 0, 0, 1, 0, 0);
   }
 }

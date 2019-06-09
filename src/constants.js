@@ -15,8 +15,10 @@ export const PLAYER_GRAVITY = 0.5;
 export const PLAYER_SHOOT_COOLDOWN = 20;
 
 export const GUN_SIZE = 0.7;
-export const GUN_OFFSET_X = -30;
-export const GUN_OFFSET_Y = -25;
+export const GUN_POSITION_OFFSET_X = -30;
+export const GUN_POSITION_OFFSET_Y = -25;
+export const GUN_RECOIL_CENTER_OFFSET_X = -12;
+export const GUN_RECOIL_CENTER_OFFSET_Y = 5;
 
 export const BULLET_SPEED = 25;
 export const BULLET_DROP = 0.1;
@@ -25,4 +27,3 @@ export const HAT_WIDTH = 70;
 export const HAT_HEIGHT = 20;
 
 export const COUNTDOWN = 100;
-

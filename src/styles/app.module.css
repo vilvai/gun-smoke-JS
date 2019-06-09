@@ -1,0 +1,64 @@
+body {
+  margin: 0;
+  overflow: hidden;
+}
+
+.loadingOverlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 30px;
+  font-family: monospace;
+  text-align: center;
+  z-index: 1;
+}
+
+.linkContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.countdown {
+  pointer-events: none;
+  position: absolute;
+  top: 200px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 50px;
+  font-weight: bold;
+  font-family: monospace;
+  text-align: center;
+  opacity: 1;
+  z-index: 1;
+  transition: opacity 1s;
+}
+
+.countdownFade {
+  opacity: 0;
+}
+
+.sketchContainer {
+  /* cursor: none; */
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.blurEffect {
+  filter: blur(15px);
+}
+
+.sketchContainer > canvas {
+  border: 5px solid black;
+}

@@ -17,7 +17,7 @@ let hostConnection;
 
 let mouseClicked = false;
 export let isRoundStarted = false;
-let countdown = COUNTDOWN;
+let countdownLeft = COUNTDOWN;
 
 const platforms = [
   // bounding box
@@ -52,12 +52,13 @@ const sendPlayerData = () => {
       })
     );
   } else {
-    hostConnection.send({
-      type: 'players',
-      players: {
-        [playerId]: allPlayersDataById[playerId],
-      },
-    });
+    hostConnection &&
+      hostConnection.send({
+        type: 'players',
+        players: {
+          [playerId]: allPlayersDataById[playerId],
+        },
+      });
   }
 };
 
@@ -81,20 +82,6 @@ const sendBulletData = (x, y, angle) => {
   }
 };
 
-
-export const countdownHandler = ()=>{
-    if(!Object.values(allPlayersDataById)
-    .filter((player)=>(player.ready==false))
-    .length && countdown != 0)
-      countdown -= 1;
-    else
-      countdown = COUNTDOWN;
-    console.log(countdown);
-    
-    if (countdown==0)
-      return true;
-};
-
 export const onReceiveData = data => {
   if (!data.type) return;
   switch (data.type) {
@@ -105,29 +92,17 @@ export const onReceiveData = data => {
       break;
     case 'bullet':
       createBullet(data.x, data.y, data.angle);
-      break
+      break;
     case 'round':
-        console.log("ROUND STARTED")
-        isRoundStarted = data.isRoundStarted
-        break
+      console.log('ROUND STARTED');
+      isRoundStarted = data.isRoundStarted;
+      startGameHandler();
+      break;
     default:
   }
 };
 
-const sendStartRound = () => playerIsHost ? Object.values(connectionsById).forEach(connection => connection.send({type: 'round', isRoundStarted: true})) : null;
-
-export const startRound = ()=>{
-    if(!isRoundStarted){
-      if(countdownHandler()){
-        sendStartRound();
-        isRoundStarted = true;
-        return true;
-      };
-    };
-};
-
 export const startGame = connection => {
-  removeOverlayText();
   if (playerIsHost) {
     connectionsById[connection.peer] = connection;
     player = new Player(180, 300);
@@ -148,10 +123,8 @@ export const startGame = connection => {
 };
 
 const onShoot = (x, y, angle) => {
-  if(isRoundStarted){
-    sendBulletData(x, y, angle);
-    createBullet(x, y, angle);
-  }
+  sendBulletData(x, y, angle);
+  createBullet(x, y, angle);
 };
 
 const createBullet = (x, y, angle) => {
@@ -162,22 +135,23 @@ const onRemoveBullet = bulletToRemove => {
   bullets = bullets.filter(bullet => bullet != bulletToRemove);
 };
 
-const updateOverlayText = text =>
-  (document.getElementById('loading-overlay').innerHTML = text);
-
-const removeOverlayText = () => {
-  document.getElementById('loading-overlay').remove();
-  document.getElementById('sketch-container').style.filter = 'none';
-};
-
-export const endGame = () => {
+export const onEndGame = () => {
   alert('Game ended');
 };
-
+let startGameHandler;
 export default class Game {
-  constructor() {
+  constructor(
+    container,
+    onSetLinkText,
+    onPlayerJoin,
+    onStartStandoff,
+    onChangeCountdownText,
+    onStartGame
+  ) {
+    startGameHandler = onStartGame;
+    this.onChangeCountdownText = onChangeCountdownText;
     const ctx = Sketch.create({
-      container: document.getElementById('sketch-container'),
+      container,
       width: GAME_WIDTH,
       height: GAME_HEIGHT,
       fullscreen: false,
@@ -185,31 +159,36 @@ export default class Game {
     });
     ctx.setup = () => {
       const hostId = getHostId(window.location.href);
+      const onError = alert;
       if (hostId == 'DEBUG') {
-        removeOverlayText();
+        onStartGame();
         playerIsHost = true;
         player = new Player(180, 300);
         return;
-      }
-      const onError = alert;
-      let onResolve;
-
-      if (!hostId) {
+      } else if (!hostId) {
         playerIsHost = true;
-        onResolve = peer => {
+        setupPeer(onReceiveData, onEndGame).then(peer => {
           playerId = peer.id;
-          updateOverlayText(
-            'Share this link with a friend: <br>localhost:8080/?host=' + peer.id
-          );
-        };
+          onSetLinkText('localhost:8080/?host=' + peer.id);
+          peer.on('connection', connection => {
+            startGame(connection);
+            onStartStandoff();
+            connection.on('data', onReceiveData);
+            connection.on('close', onEndGame);
+          });
+        }, onError);
       } else {
         playerIsHost = false;
-        onResolve = peer => {
-          playerId = peer.id;
-          connectToHost(peer, hostId);
-        };
+        setupPeer(onReceiveData, onEndGame)
+          .then(peer => {
+            playerId = peer.id;
+            return connectToHost(peer, hostId, onReceiveData, onEndGame);
+          }, onError)
+          .then(connection => {
+            startGame(connection);
+            onStartStandoff();
+          });
       }
-      setupPeer.then(onResolve, onError);
     };
     ctx.mousedown = () => (mouseClicked = true);
     ctx.update = () => {
@@ -220,6 +199,7 @@ export default class Game {
           ctx.mouse.x,
           ctx.mouse.y,
           mouseClicked,
+          isRoundStarted,
           onShoot
         );
         allPlayersDataById[playerId] = {
@@ -229,6 +209,30 @@ export default class Game {
           gunRecoil: player.gunRecoil,
           ready: player.ready,
         };
+      }
+
+      if (!isRoundStarted && player) {
+        console.log(player.angle);
+        if (player.angle <= 1.2 || player.angle >= 1.94)
+          this.onChangeCountdownText('Aim down');
+        else this.onChangeCountdownText('Ready...');
+        if (
+          Object.values(allPlayersDataById).every(
+            player => player.angle > 1 && player.angle < 2.35
+          )
+        )
+          countdownLeft -= 1;
+        else countdownLeft = COUNTDOWN;
+
+        console.log(countdownLeft);
+
+        if (countdownLeft == 0 && playerIsHost) {
+          Object.values(connectionsById).forEach(connection =>
+            connection.send({ type: 'round', isRoundStarted: true })
+          );
+          isRoundStarted = true;
+          startGameHandler();
+        }
       }
 
       Object.entries(otherPlayersById).forEach(([id, otherPlayer]) =>
