@@ -23,3 +23,6 @@ export const BULLET_DROP = 0.1;
 
 export const HAT_WIDTH = 70;
 export const HAT_HEIGHT = 20;
+
+export const COUNTDOWN = 100;
+

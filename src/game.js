@@ -1,6 +1,6 @@
 import Sketch from './lib/sketch.js';
 
-import { GAME_WIDTH, GAME_HEIGHT } from './constants.js';
+import { GAME_WIDTH, GAME_HEIGHT, COUNTDOWN } from './constants.js';
 import Player, { GenericPlayer } from './player.js';
 import Platform from './platform.js';
 import Bullet from './bullet.js';
@@ -11,12 +11,13 @@ let player;
 let playerId;
 const otherPlayersById = {};
 const allPlayersDataById = {};
-
 export let playerIsHost = false;
 const connectionsById = {};
 let hostConnection;
 
 let mouseClicked = false;
+export let isRoundStarted = false;
+let countdown = COUNTDOWN;
 
 const platforms = [
   // bounding box
@@ -80,6 +81,20 @@ const sendBulletData = (x, y, angle) => {
   }
 };
 
+
+export const countdownHandler = ()=>{
+    if(!Object.values(allPlayersDataById)
+    .filter((player)=>(player.ready==false))
+    .length && countdown != 0)
+      countdown -= 1;
+    else
+      countdown = COUNTDOWN
+    console.log(countdown)
+    
+    if (countdown==0)
+      return true
+}
+
 export const onReceiveData = data => {
   if (!data.type) return;
   switch (data.type) {
@@ -90,9 +105,26 @@ export const onReceiveData = data => {
       break;
     case 'bullet':
       createBullet(data.x, data.y, data.angle);
+      break
+    case 'round':
+        console.log("ROUND STARTED")
+        isRoundStarted = data.isRoundStarted
+        break
     default:
   }
 };
+
+const sendStartRound = () => playerIsHost ? Object.values(connectionsById).forEach(connection => connection.send({type: 'round', isRoundStarted: true})) : null
+
+export const startRound = ()=>{
+    if(!isRoundStarted){
+      if(countdownHandler()){
+        sendStartRound()
+        isRoundStarted = true
+        return true
+      }
+    }
+}
 
 export const startGame = connection => {
   removeOverlayText();
@@ -116,8 +148,10 @@ export const startGame = connection => {
 };
 
 const onShoot = (x, y, angle) => {
-  sendBulletData(x, y, angle);
-  createBullet(x, y, angle);
+  if(isRoundStarted){
+    sendBulletData(x, y, angle);
+    createBullet(x, y, angle);
+  }
 };
 
 const createBullet = (x, y, angle) => {
@@ -165,7 +199,7 @@ export default class Game {
         onResolve = peer => {
           playerId = peer.id;
           updateOverlayText(
-            'Share this link with a friend: <br>localhost:8080?host=' + peer.id
+            'Share this link with a friend: <br>localhost:8080/?host=' + peer.id
           );
         };
       } else {
@@ -193,6 +227,7 @@ export default class Game {
           y: player.y,
           angle: player.angle,
           gunRecoil: player.gunRecoil,
+          ready: player.ready,
         };
       }
 
