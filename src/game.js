@@ -88,12 +88,12 @@ export const countdownHandler = ()=>{
     .length && countdown != 0)
       countdown -= 1;
     else
-      countdown = COUNTDOWN
-    console.log(countdown)
+      countdown = COUNTDOWN;
+    console.log(countdown);
     
     if (countdown==0)
-      return true
-}
+      return true;
+};
 
 export const onReceiveData = data => {
   if (!data.type) return;
@@ -114,17 +114,17 @@ export const onReceiveData = data => {
   }
 };
 
-const sendStartRound = () => playerIsHost ? Object.values(connectionsById).forEach(connection => connection.send({type: 'round', isRoundStarted: true})) : null
+const sendStartRound = () => playerIsHost ? Object.values(connectionsById).forEach(connection => connection.send({type: 'round', isRoundStarted: true})) : null;
 
 export const startRound = ()=>{
     if(!isRoundStarted){
       if(countdownHandler()){
-        sendStartRound()
-        isRoundStarted = true
-        return true
-      }
-    }
-}
+        sendStartRound();
+        isRoundStarted = true;
+        return true;
+      };
+    };
+};
 
 export const startGame = connection => {
   removeOverlayText();

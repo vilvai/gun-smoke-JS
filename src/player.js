@@ -105,7 +105,7 @@ export default class Player extends GenericPlayer {
     this.armRecoilReturn = 0;
     this.armRecoilDelay = 0;
     this.gunCooldown = 0;
-    this.ready = false
+    this.ready = false;
   }
 
   update(keys, platforms, mouseX, mouseY, mouseClicked, onShoot) {
@@ -192,16 +192,16 @@ export default class Player extends GenericPlayer {
       }
     }else{
         if (this.angle > 1 && this.angle <2.35){
-          this.ready = true
+          this.ready = true;
           if(playerIsHost)
-            startRound()
+            startRound();
         }
         else{
-          this.ready = false
-        }
-    }
+          this.ready = false;
+        };
+    };
     
-  }
+  };
 
   moveRight(collisions) {
     if (collisions[0] && this.xSpeed < 0) this.xSpeed /= 4;
