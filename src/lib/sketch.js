@@ -522,7 +522,7 @@ for (var i = 0; i < vendors.length && !rAF; i++) {
 }
 
 scope[b] = rAF =
-  rAF ||
+  //  rAF ||
   function(callback) {
     var now = +new Date();
     var dt = M.max(0, 16 - (now - then));
