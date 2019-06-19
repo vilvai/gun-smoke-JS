@@ -62,24 +62,10 @@ const sendPlayerData = () => {
   }
 };
 
-const sendBulletData = (x, y, angle) => {
-  if (playerIsHost) {
-    Object.values(connectionsById).forEach(connection =>
-      connection.send({
-        type: 'bullet',
-        x,
-        y,
-        angle,
-      })
-    );
-  } else {
-    hostConnection.send({
-      type: 'bullet',
-      x,
-      y,
-      angle,
-    });
-  }
+const sendData = data => {
+  if (playerIsHost)
+    Object.values(connectionsById).forEach(connection => connection.send(data));
+  else hostConnection.send(data);
 };
 
 export const onReceiveData = data => {
@@ -91,12 +77,19 @@ export const onReceiveData = data => {
       );
       break;
     case 'bullet':
-      createBullet(data.x, data.y, data.angle);
+      createBullet(data.x, data.y, data.angle, data.bulletId);
       break;
     case 'round':
       console.log('ROUND STARTED');
       isRoundStarted = data.isRoundStarted;
       startGameHandler();
+      break;
+    case 'hit':
+      onRemoveBullet(data.bulletId);
+      otherPlayersById[data.playerId].onHit(data.angle, data.random);
+      break;
+    case 'hitPlatform':
+      onRemoveBullet(data.bulletId);
       break;
     default:
   }
@@ -108,12 +101,12 @@ export const startGame = connection => {
     player = new Player(180, 300);
     otherPlayersById[connection.peer] = new GenericPlayer(780, 300);
     allPlayersDataById[connection.peer] = {
-      x: 780,
+      x: 1060,
       y: 300,
     };
   } else {
     hostConnection = connection;
-    player = new Player(780, 300);
+    player = new Player(1060, 300);
     otherPlayersById[connection.peer] = new GenericPlayer(180, 300);
     allPlayersDataById[connection.peer] = {
       x: 180,
@@ -122,17 +115,40 @@ export const startGame = connection => {
   }
 };
 
+const createRandomId = () => {
+  const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghiklmnopqrstuvwxyz'.split(
+    ''
+  );
+  let str = '';
+  for (let i = 0; i < 16; i++) {
+    str += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return str;
+};
+
 const onShoot = (x, y, angle) => {
-  sendBulletData(x, y, angle);
-  createBullet(x, y, angle);
+  const bulletId = createRandomId();
+  sendData({ type: 'bullet', x, y, angle, bulletId });
+  createBullet(x, y, angle, bulletId);
 };
 
-const createBullet = (x, y, angle) => {
-  bullets.push(new Bullet(x, y, angle));
+const createBullet = (x, y, angle, bulletId) => {
+  bullets.push(new Bullet(x, y, angle, bulletId));
 };
 
-const onRemoveBullet = bulletToRemove => {
-  bullets = bullets.filter(bullet => bullet != bulletToRemove);
+const onRemoveBullet = bulletId => {
+  bullets = bullets.filter(bullet => bullet.id !== bulletId);
+};
+
+const onHitPlayer = (angle, bulletId) => {
+  const random = Math.random();
+  player.onHit(angle, random);
+  sendData({ type: 'hit', angle, random, playerId, bulletId });
+};
+
+const onHitPlatform = bulletId => {
+  onRemoveBullet(bulletId);
+  sendData({ type: 'hitPlatform', bulletId });
 };
 
 export const onEndGame = () => {
@@ -175,6 +191,7 @@ export default class Game {
             onStartStandoff();
             connection.on('data', onReceiveData);
             connection.on('close', onEndGame);
+            setTimeout(() => peer.disconnect(), 1000);
           });
         }, onError);
       } else {
@@ -238,7 +255,16 @@ export default class Game {
       Object.entries(otherPlayersById).forEach(([id, otherPlayer]) =>
         otherPlayer.update(allPlayersDataById[id])
       );
-      bullets.forEach(bullet => bullet.update(onRemoveBullet));
+      bullets.forEach(bullet =>
+        bullet.update(
+          onRemoveBullet,
+          onHitPlayer,
+          onHitPlatform,
+          player.x,
+          player.y,
+          platforms
+        )
+      );
       mouseClicked = false;
       sendPlayerData();
     };

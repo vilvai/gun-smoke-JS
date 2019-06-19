@@ -23,7 +23,7 @@ export class GenericPlayer {
   constructor(x, y) {
     this.x = x;
     this.y = y;
-    this.lives = 1;
+    this.lives = 2;
     this.hat = new Hat(this.x, this.y);
     this.gun = new Gun(this.x, this.y);
     this.gunRecoil = 0;
@@ -63,16 +63,23 @@ export class GenericPlayer {
     );
   }
 
+  onHit(angle, random) {
+    this.lives -= 1;
+    if (this.lives == 1) this.hat.fly(angle, random);
+  }
+
   update({ x, y, angle, gunRecoil }) {
     this.x = x;
     this.y = y;
     this.angle = angle;
     this.gunRecoil = gunRecoil;
-    this.hat.update(this.x, this.y, this.lives == 0);
+    this.hat.update(this.x, this.y);
   }
 
   draw(context) {
-    context.fillStyle = '#000';
+    const playerColor = this.lives > 0 ? '#000' : '#630c0c';
+    context.fillStyle = playerColor;
+
     context.fillRect(this.x, this.y, PLAYER_WIDTH, PLAYER_HEIGHT);
     this.hat.draw(context);
 
@@ -81,7 +88,7 @@ export class GenericPlayer {
       const armEndY = this.getArmEndY();
 
       context.lineWidth = PLAYER_ARM_WIDTH;
-      context.strokeStyle = '#000';
+      context.strokeStyle = playerColor;
       context.beginPath();
       context.moveTo(this.getArmStartX(), this.getArmStartY());
       context.lineTo(armEndX, armEndY);
@@ -117,7 +124,7 @@ export default class Player extends GenericPlayer {
   ) {
     const collisions = this.collision(platforms);
 
-    if (isRoundStarted) {
+    if (isRoundStarted && this.lives > 0) {
       if (keys.D) {
         this.moveRight(collisions);
       } else if (keys.A) {
@@ -136,7 +143,7 @@ export default class Player extends GenericPlayer {
         this.drop(collisions);
       }
       if (keys.R) {
-        this.lives = 1;
+        this.lives = 2;
         this.hat = new Hat(this.x, this.y);
       }
       if (keys.E) {
@@ -176,8 +183,8 @@ export default class Player extends GenericPlayer {
     const deltaX = mouseX - this.getArmStartX();
     const deltaY = mouseY - this.getArmStartY();
 
-    this.hat.update(this.x, this.y, this.lives <= 0);
-    this.angle = -Math.atan2(deltaX, deltaY) + Math.PI / 2;
+    this.hat.update(this.x, this.y);
+    if (this.lives > 0) this.angle = -Math.atan2(deltaX, deltaY) + Math.PI / 2;
 
     this.gunCooldown -= 1;
     this.gunRecoil = Math.max(

@@ -12,17 +12,19 @@ export default class Hat {
     this.x = x;
     this.y = y;
     this.ySpeed = -10;
-    const direction = Math.round(Math.random()) * 2 - 1; // -1 (left) or 1 (right)
-    this.xSpeed = direction * 8;
-    this.rotation = direction * (Math.floor(Math.random() * 5) + 20);
     this.angle = 0;
+    this.off = false;
   }
 
-  update(x, y, isDead) {
-    if (!isDead) {
-      this.x = x;
-      this.y = y;
-    } else {
+  fly(angle, random) {
+    this.off = true;
+    const direction = angle > Math.PI / 2 ? -1 : 1; // -1 (left) or 1 (right)
+    this.xSpeed = direction * 8;
+    this.rotation = direction * (Math.floor(random * 5) + 20);
+  }
+
+  update(x, y) {
+    if (this.off) {
       this.ySpeed = Math.min(this.ySpeed + 0.5, 20);
       this.xSpeed *= 0.95;
       if (Math.abs(this.xSpeed) < 0.1) this.xSpeed = 0;
@@ -31,6 +33,9 @@ export default class Hat {
 
       this.x += this.xSpeed;
       this.y += this.ySpeed;
+    } else {
+      this.x = x;
+      this.y = y;
     }
   }
 
