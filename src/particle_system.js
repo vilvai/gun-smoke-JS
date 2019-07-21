@@ -22,7 +22,7 @@ export default class ParticleSystem {
 
 		for (var i = 0; i < this.spriteCount; i++) {
 
-				var temp_sprite = {x: 0, y: 0,	xr: 0, yr: 0, r: 1,	scale: 0.005, dx: rand(-1,1), dy: rand(-1,1), dr: 0.1,	alfa: 1, img: new Image()};
+				var temp_sprite = {x: 0, y: 0,	xr: 0, yr: 0, r: 1,	scale: 0.7, dx: rand(-1,1), dy: rand(-1,1), dr: 0.1,	alfa: 1, img: new Image()};
 
 				ready_sprites.push(temp_sprite);
 				ready_sprites[i].img.src = this.imageName;
@@ -33,33 +33,49 @@ export default class ParticleSystem {
 		
 		this.sprite = ready_sprites;
 	}
-	draw(context){
+	draw(context, xspeed, yspeed){
 		if(this.sprite.length == 0){this.setup()};
-		for (var i=0;i<this.sprite.length;i++){
-	      this.sprite[i].scale += 0.003;
 
-	      this.sprite[i].x += this.sprite[i].dx;
-	      this.sprite[i].y += this.sprite[i].dy;
-	      this.sprite[i].r += this.sprite[i].dr;
+		if(yspeed != 0){};
 
-	      var iwM = this.sprite[i].img.width * this.sprite[i].scale * 2 + context.width;
-	      var ihM = this.sprite[i].img.height * this.sprite[i].scale * 2 + context.height;
+		if (xspeed != 0  ){
+			
+				// statement
+			
+				for (var i=0;i<this.sprite.length;i++){
+			      this.sprite[i].scale += 0.03;
+
+			      this.sprite[i].x += this.sprite[i].dx;
+			      this.sprite[i].y += this.sprite[i].dy;
+			      this.sprite[i].r += this.sprite[i].dr;
+
+			      var iwM = this.sprite[i].img.width * this.sprite[i].scale * 2 + context.width;
+			      var ihM = this.sprite[i].img.height * this.sprite[i].scale * 2 + context.height;
+			  if (yspeed == 0) {    
+			      this.sprite[i].xr = ((this.sprite[i].x % iwM) + iwM) % iwM - this.sprite[i].img.width * this.sprite[i].scale;
+			      this.sprite[i].yr = ((this.sprite[i].y % ihM) + ihM) % ihM - this.sprite[i].img.height * this.sprite[i].scale;
+			 }     
+			      if (this.sprite[i].alfa >= 0.01) {
+			        this.sprite[i].alfa -= 0.01;
+			      }
+			      else{
+							this.sprite[i].alfa = 0;
+							this.setup();
+			      }
+
+			      drawImageCenter(this.sprite[i].img,this.sprite[i].x + 20,this.sprite[i].y + 80,8,8,this.sprite[i].scale,this.sprite[i].r, context,this.sprite[i].alfa);
+
+			      context.setTransform(1,0,0,1,0,0);
+			      context.globalAlpha = 1;
+		  	
+	  	};
+
+		
+
 	      
-	      this.sprite[i].xr = ((this.sprite[i].x % iwM) + iwM) % iwM - this.sprite[i].img.width * this.sprite[i].scale;
-	      this.sprite[i].yr = ((this.sprite[i].y % ihM) + ihM) % ihM - this.sprite[i].img.height * this.sprite[i].scale;
-	      
-	      if (this.sprite[i].alfa >= 0.01) {
-	        this.sprite[i].alfa -= 0.05;
-	      }
-	      else{
-					this.sprite[i].alfa = 0;
-					this.setup();
-	      }
+    	}else {
+	  		this.setup();
+	  	}
 
-	      drawImageCenter(this.sprite[i].img,this.sprite[i].x,this.sprite[i].y,185.5,185.5,this.sprite[i].scale,this.sprite[i].r, context,this.sprite[i].alfa);
-
-	      context.setTransform(1,0,0,1,0,0);
-	      context.globalAlpha = 1;
-    	}
 	}
 }

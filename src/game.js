@@ -33,8 +33,7 @@ const platforms = [
 ];
 
 var particle_systems = [
-	  new ParticleSystem(1,124,50,'small_doggo.png'),
-	  new ParticleSystem(100,640,100,'small_doggo.png')
+	  new ParticleSystem(1,124,10,'particle.png'),
 	  ];
 
 
@@ -152,18 +151,19 @@ export default class Game {
       platforms.forEach(platform => platform.draw(ctx));
       if (player) {
         player.draw(ctx);
-        particle_systems[0].x = player.x;
+        particle_systems[0].x = player.x; // particlesystems trail player
         particle_systems[0].y = player.y;
-
+        particle_systems[0].draw(ctx,player.xSpeed,player.ySpeed);
+        
+      
       }
       Object.values(otherPlayersById).forEach(
       	otherPlayer => {
       		otherPlayer.draw(ctx);
-      		particle_systems[1].x = otherPlayer.x;
-      		particle_systems[1].y = otherPlayer.y;
+
       	});
       
-      particle_systems.forEach(system => system.draw(ctx));
+      
 
     };
   }
