@@ -27,6 +27,8 @@ export class GenericPlayer {
     this.hat = new Hat(this.x, this.y);
     this.gun = new Gun(this.x, this.y);
     this.gunRecoil = 0;
+    this.isMoving = false;
+    this.isTouchingGround = false;
   }
 
   getArmStartX() {
@@ -100,8 +102,8 @@ export class GenericPlayer {
 }
 
 export default class Player extends GenericPlayer {
-  constructor(x, y) {
-    super(x, y);
+  constructor(x, y, isMoving, isTouchingGround) {
+    super(x, y, isMoving, isTouchingGround);
     this.xSpeed = 0;
     this.ySpeed = 0;
     this.gunRecoilForce = 0;
@@ -157,6 +159,19 @@ export default class Player extends GenericPlayer {
         this.armRecoilDelay = 2;
         this.gunCooldown = PLAYER_SHOOT_COOLDOWN;
         onShoot(this.getGunBarrelX(), this.getGunBarrelY(), this.angle);
+      }
+      if (this.isTouching(collisions)) {
+        this.isTouchingGround = true;
+      }
+      else {
+        this.isTouchingGround = false;
+      }
+
+      if (this.Moving()) {
+        this.isMoving = true;
+      }
+      else {
+        this.isMoving = false;
       }
     }
 
@@ -301,5 +316,16 @@ export default class Player extends GenericPlayer {
       collisions[1] = false;
     }
     return collisions;
+  }
+
+  Moving() {
+    if (this.xSpeed != 0 || this.ySpeed != 0) {
+      return true;
+    }
+  }
+  isTouching(collisions) {
+    if (collisions[0] != false) {
+      return true;
+    }
   }
 }
