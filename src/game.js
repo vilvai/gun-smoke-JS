@@ -135,7 +135,7 @@ const onShoot = (x, y, angle) => {
   const bulletId = createRandomId();
   sendData({ type: 'bullet', x, y, angle, bulletId });
   createBullet(x, y, angle, bulletId);
-<<<<<<< HEAD
+
 };
 
 const createBullet = (x, y, angle, bulletId) => {
@@ -146,18 +146,6 @@ const onRemoveBullet = bulletId => {
   bullets = bullets.filter(bullet => bullet.id !== bulletId);
 };
 
-=======
-};
-
-const createBullet = (x, y, angle, bulletId) => {
-  bullets.push(new Bullet(x, y, angle, bulletId));
-};
-
-const onRemoveBullet = bulletId => {
-  bullets = bullets.filter(bullet => bullet.id !== bulletId);
-};
-
->>>>>>> 051bbe4ed594c57353b7ab1101632b0d2d090ebb
 const onHitPlayer = (angle, bulletId) => {
   const random = Math.random();
   player.onHit(angle, random);
@@ -206,19 +194,11 @@ export default class Game {
           onSetLinkText('localhost:8080/?host=' + peer.id);
 
           peer.on('connection', connection => {
-<<<<<<< HEAD
            startGame(connection);
            onStartStandoff();
            connection.on('data', onReceiveData);
            connection.on('close', onEndGame);
-           setTimeout(() => peer.disconnect(), 1000);
-=======
-            startGame(connection);
-            onStartStandoff();
-            connection.on('data', onReceiveData);
-            connection.on('close', onEndGame);
             setTimeout(() => peer.disconnect(), 1000);
->>>>>>> 051bbe4ed594c57353b7ab1101632b0d2d090ebb
           });
         }, onError);
       }
