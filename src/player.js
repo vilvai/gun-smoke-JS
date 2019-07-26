@@ -162,15 +162,13 @@ export default class Player extends GenericPlayer {
       }
       if (this.isTouching(collisions)) {
         this.isTouchingGround = true;
-      }
-      else {
+      } else {
         this.isTouchingGround = false;
       }
 
       if (this.Moving()) {
         this.isMoving = true;
-      }
-      else {
+      } else {
         this.isMoving = false;
       }
     }

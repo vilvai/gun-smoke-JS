@@ -35,9 +35,7 @@ const platforms = [
   // new Platform(340, 500, 600, 30, false),
 ];
 
-var particle_systems = [
-    new ParticleSystem_Smoke(1, 124)
-];
+var particle_systems = [new ParticleSystem_Smoke(1, 124)];
 
 let bullets = [];
 
@@ -135,7 +133,6 @@ const onShoot = (x, y, angle) => {
   const bulletId = createRandomId();
   sendData({ type: 'bullet', x, y, angle, bulletId });
   createBullet(x, y, angle, bulletId);
-
 };
 
 const createBullet = (x, y, angle, bulletId) => {
@@ -162,7 +159,14 @@ export const onEndGame = () => {
 };
 let startGameHandler;
 export default class Game {
-  constructor(container,onSetLinkText,onPlayerJoin,onStartStandoff,onChangeCountdownText,onStartGame) {
+  constructor(
+    container,
+    onSetLinkText,
+    onPlayerJoin,
+    onStartStandoff,
+    onChangeCountdownText,
+    onStartGame
+  ) {
     startGameHandler = onStartGame;
     this.onChangeCountdownText = onChangeCountdownText;
 
@@ -183,10 +187,7 @@ export default class Game {
         playerIsHost = true;
         player = new Player(180, 300);
         return;
-
-      }
-
-      else if (!hostId) {
+      } else if (!hostId) {
         playerIsHost = true;
 
         setupPeer(onReceiveData, onEndGame).then(peer => {
@@ -194,15 +195,14 @@ export default class Game {
           onSetLinkText('localhost:8080/?host=' + peer.id);
 
           peer.on('connection', connection => {
-           startGame(connection);
-           onStartStandoff();
-           connection.on('data', onReceiveData);
-           connection.on('close', onEndGame);
+            startGame(connection);
+            onStartStandoff();
+            connection.on('data', onReceiveData);
+            connection.on('close', onEndGame);
             setTimeout(() => peer.disconnect(), 1000);
           });
         }, onError);
-      }
-      else {
+      } else {
         playerIsHost = false;
         setupPeer(onReceiveData, onEndGame)
           .then(peer => {
@@ -220,10 +220,18 @@ export default class Game {
 
     ctx.update = () => {
       if (player) {
+        player.update(
+          ctx.keys,
+          platforms,
+          ctx.mouse.x,
+          ctx.mouse.y,
+          mouseClicked,
+          isRoundStarted,
+          onShoot
+        );
 
-        player.update(ctx.keys,platforms,ctx.mouse.x,ctx.mouse.y,mouseClicked,isRoundStarted,onShoot);
-
-        allPlayersDataById[playerId] = { //TODO: isMOVING ja isGROUNDED?
+        allPlayersDataById[playerId] = {
+          //TODO: isMOVING ja isGROUNDED?
           x: player.x,
           y: player.y,
           angle: player.angle,
@@ -231,7 +239,6 @@ export default class Game {
           ready: player.ready,
           isMoving: player.isMoving,
           isTouchingGround: player.isTouchingGround,
-
         };
       }
 
@@ -274,7 +281,7 @@ export default class Game {
       );
       mouseClicked = false;
       sendPlayerData();
-      };
+    };
 
     ctx.draw = () => {
       ctx.fillStyle = '#cef';
@@ -282,9 +289,9 @@ export default class Game {
       platforms.forEach(platform => platform.draw(ctx));
       bullets.forEach(bullet => bullet.draw(ctx));
       if (player) {
-        player.draw(ctx)
+        player.draw(ctx);
         particle_systems[0].draw(ctx, player);
-      };
+      }
       Object.values(otherPlayersById).forEach(otherPlayer =>
         otherPlayer.draw(ctx)
       );
