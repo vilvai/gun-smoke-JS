@@ -73,12 +73,13 @@ export default class Background {
   }
 
   clouds(ctx) {
-
+    
     this.cloudX += 0.1
     if (this.cloudX >= ctx.width + 500) {
       this.cloudX = -500
     }
     drawImageCenter(this.cloud, this.cloudX, this.cloudY, 212, 42, 1, 0, ctx, 1)
+    
   }
 
   //DayCycle()
