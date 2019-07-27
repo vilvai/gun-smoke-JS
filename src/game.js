@@ -5,6 +5,7 @@ import Player, { GenericPlayer } from './player.js';
 import Platform from './platform.js';
 import Bullet from './bullet.js';
 import ParticleSystem_Smoke from './particle_system.js';
+import Background from './background.js';
 
 import { setupPeer, connectToHost } from './network/util.js';
 
@@ -36,6 +37,8 @@ const platforms = [
 ];
 
 var particle_systems = [new ParticleSystem_Smoke(1, 124)];
+
+var background = new Background()
 
 let bullets = [];
 
@@ -284,14 +287,17 @@ export default class Game {
     };
 
     ctx.draw = () => {
-      ctx.fillStyle = '#cef';
-      ctx.fillRect(0, 0, ctx.width, ctx.height);
+
+      background.draw(ctx)
+
       platforms.forEach(platform => platform.draw(ctx));
       bullets.forEach(bullet => bullet.draw(ctx));
+
       if (player) {
         player.draw(ctx);
         particle_systems[0].draw(ctx, player);
       }
+
       Object.values(otherPlayersById).forEach(otherPlayer =>
         otherPlayer.draw(ctx)
       );
