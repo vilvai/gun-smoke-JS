@@ -32,6 +32,10 @@ module.exports = {
         ],
         exclude: /node_modules/,
       },
+      {
+        test: /\.(png|svg|jpg|gif)$/,
+        use: ['file-loader'],
+      },
     ],
   },
   resolve: { extensions: ['*', '.js', '.jsx'] },
@@ -39,12 +43,6 @@ module.exports = {
     path: path.resolve(__dirname, 'dist/'),
     filename: 'bundle.js',
   },
-  devServer: {
-    contentBase: path.join(__dirname, 'dist/'),
-    port: 8080,
-    publicPath: 'http://localhost:8080/dist/',
-    hotOnly: true,
-  },
-  plugins: [new webpack.HotModuleReplacementPlugin(), htmlPlugin],
+  plugins: [htmlPlugin],
   devtool: 'eval-source-map',
 };

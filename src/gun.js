@@ -6,8 +6,10 @@ import {
   GUN_RECOIL_CENTER_OFFSET_Y,
 } from './constants.js';
 
+import gunSrc from './images/gun_abstract.png';
+
 const gunImage = new Image();
-gunImage.src = 'images/gun_abstract.png';
+gunImage.src = gunSrc;
 
 export default class Gun {
   constructor(x, y) {

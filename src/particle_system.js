@@ -1,3 +1,5 @@
+import particleSrc from './images/particle.png';
+
 function drawImageCenter(image, x, y, cx, cy, scale, rotation, ctx, alfa) {
   ctx.setTransform(scale, 0, 0, scale, x, y);
   ctx.rotate(rotation);
@@ -8,7 +10,7 @@ function drawImageCenter(image, x, y, cx, cy, scale, rotation, ctx, alfa) {
 }
 
 var image = new Image();
-image.src = 'images/particle.png';
+image.src = particleSrc;
 var time;
 
 time = new Date();
