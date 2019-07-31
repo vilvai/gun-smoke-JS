@@ -38,7 +38,7 @@ const platforms = [
 
 var particle_systems = [new ParticleSystem_Smoke(1, 124)];
 
-var background = new Background()
+var background = new Background();
 
 let bullets = [];
 
@@ -195,7 +195,7 @@ export default class Game {
 
         setupPeer(onReceiveData, onEndGame).then(peer => {
           playerId = peer.id;
-          onSetLinkText('localhost:8080/?host=' + peer.id);
+          onSetLinkText(window.location.href + '?host=' + peer.id);
 
           peer.on('connection', connection => {
             startGame(connection);
@@ -287,8 +287,7 @@ export default class Game {
     };
 
     ctx.draw = () => {
-
-      background.draw(ctx)
+      background.draw(ctx);
 
       platforms.forEach(platform => platform.draw(ctx));
       bullets.forEach(bullet => bullet.draw(ctx));

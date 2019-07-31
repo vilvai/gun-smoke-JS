@@ -1,5 +1,11 @@
 const path = require('path');
 const webpack = require('webpack');
+const HtmlWebPackPlugin = require('html-webpack-plugin');
+
+const htmlPlugin = new HtmlWebPackPlugin({
+  template: './src/index.html',
+  filename: './index.html',
+});
 
 module.exports = {
   entry: './src/index.js',
@@ -10,7 +16,6 @@ module.exports = {
         test: /\.(js|jsx)$/,
         exclude: /(node_modules|bower_components)/,
         loader: 'babel-loader',
-        options: { presets: ['@babel/env'] },
       },
       {
         test: /module\.css$/,
@@ -27,20 +32,17 @@ module.exports = {
         ],
         exclude: /node_modules/,
       },
+      {
+        test: /\.(png|svg|jpg|gif)$/,
+        use: ['file-loader'],
+      },
     ],
   },
   resolve: { extensions: ['*', '.js', '.jsx'] },
   output: {
     path: path.resolve(__dirname, 'dist/'),
-    publicPath: '/dist/',
     filename: 'bundle.js',
   },
-  devServer: {
-    contentBase: path.join(__dirname, 'public/'),
-    port: 8080,
-    publicPath: 'http://localhost:8080/dist/',
-    hotOnly: true,
-  },
-  plugins: [new webpack.HotModuleReplacementPlugin()],
+  plugins: [htmlPlugin],
   devtool: 'eval-source-map',
 };
