@@ -245,8 +245,8 @@ export default class Player extends GenericPlayer {
     if (this.xSpeed == PLAYER_MAX_X_SPEED) this.movementType = MOVING_RIGHT;
     else if (this.xSpeed == -PLAYER_MAX_X_SPEED)
       this.movementType = MOVING_LEFT;
-    else if (keys.D) this.movementType = ACCELERATING_RIGHT;
-    else if (keys.A) this.movementType = ACCELERATING_LEFT;
+    else if (keys.D && this.lives > 0) this.movementType = ACCELERATING_RIGHT;
+    else if (keys.A && this.lives > 0) this.movementType = ACCELERATING_LEFT;
     else this.movementType = STILL;
   }
 
