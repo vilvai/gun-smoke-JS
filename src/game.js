@@ -1,10 +1,9 @@
 import Sketch from './lib/sketch.js';
 
 import { GAME_WIDTH, GAME_HEIGHT, COUNTDOWN } from './constants.js';
-import Player, { GenericPlayer } from './player.js';
+import Player, { GenericPlayer } from './player/player.js';
 import Platform from './platform.js';
 import Bullet from './bullet.js';
-import ParticleSystem_Smoke from './particle_system.js';
 import Background from './background.js';
 
 import { setupPeer, connectToHost } from './network/util.js';
@@ -36,9 +35,7 @@ const platforms = [
   // new Platform(340, 500, 600, 30, false),
 ];
 
-var particle_systems = [new ParticleSystem_Smoke(1, 124)];
-
-var background = new Background();
+const background = new Background();
 
 let bullets = [];
 
@@ -86,7 +83,6 @@ export const onReceiveData = data => {
       createBullet(data.x, data.y, data.angle, data.bulletId);
       break;
     case 'round':
-      console.log('ROUND STARTED');
       isRoundStarted = data.isRoundStarted;
       startGameHandler();
       break;
@@ -187,6 +183,7 @@ export default class Game {
 
       if (hostId == 'DEBUG') {
         onStartGame();
+        isRoundStarted = true;
         playerIsHost = true;
         player = new Player(180, 300);
         return;
@@ -234,19 +231,17 @@ export default class Game {
         );
 
         allPlayersDataById[playerId] = {
-          //TODO: isMOVING ja isGROUNDED?
           x: player.x,
           y: player.y,
           angle: player.angle,
           gunRecoil: player.gunRecoil,
           ready: player.ready,
-          isMoving: player.isMoving,
+          movementType: player.movementType,
           isTouchingGround: player.isTouchingGround,
         };
       }
 
       if (!isRoundStarted && player) {
-        //console.log(player.angle);
         if (player.angle <= 1.2 || player.angle >= 1.94)
           this.onChangeCountdownText('Aim down');
         else this.onChangeCountdownText('Ready...');
@@ -257,8 +252,6 @@ export default class Game {
         )
           countdownLeft -= 1;
         else countdownLeft = COUNTDOWN;
-
-        //console.log(countdownLeft);
 
         if (countdownLeft == 0 && playerIsHost) {
           Object.values(connectionsById).forEach(connection =>
@@ -292,10 +285,7 @@ export default class Game {
       platforms.forEach(platform => platform.draw(ctx));
       bullets.forEach(bullet => bullet.draw(ctx));
 
-      if (player) {
-        player.draw(ctx);
-        particle_systems[0].draw(ctx, player);
-      }
+      if (player) player.draw(ctx);
 
       Object.values(otherPlayersById).forEach(otherPlayer =>
         otherPlayer.draw(ctx)

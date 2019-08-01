@@ -3,9 +3,9 @@ import {
   PLAYER_HEIGHT,
   HAT_WIDTH,
   HAT_HEIGHT,
-} from './constants.js';
+} from '../constants.js';
 
-var TO_RADIANS = Math.PI / 180;
+const TO_RADIANS = Math.PI / 180;
 
 export default class Hat {
   constructor(x, y) {

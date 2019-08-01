@@ -1,24 +1,21 @@
 import backgroundSrc from './images/bak.png';
 import cloudSrc from './images/cloud.png';
 
-function drawImageCenter(image, x, y, cx, cy, scale, rotation, ctx, alfa) {
-  ctx.setTransform(scale, 0, 0, scale, x, y);
-  ctx.rotate(rotation);
-  ctx.globalAlpha = alfa;
+function drawImageCenter(image, x, y, cx, cy, ctx) {
+  ctx.setTransform(1, 0, 0, 1, x, y);
   ctx.drawImage(image, -cx, -cy);
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.globalAlpha = 1;
 }
-function getXYfromPolar(theta, r) {
-  var x = 640 + r * Math.cos(theta);
-  var y = 460 + r * Math.sin(theta);
 
-  return [x, y];
+function getXYfromPolar(theta, r) {
+  return {
+    x: 640 + r * Math.cos(theta),
+    y: 460 + r * Math.sin(theta),
+  };
 }
 
 export default class Background {
   constructor(ctx) {
-    this.fillstyle = '#cef';
     this.night = new Image();
     this.night.src = backgroundSrc;
     this.cloud = new Image();
@@ -32,33 +29,16 @@ export default class Background {
     this.sunRising = false;
   }
   draw(ctx) {
-    /*
-    ctx.fillStyle = this.fillstyle;
-    ctx.fillRect(0, 0, ctx.width, ctx.height);
-    ctx.fillStyle = "#c2c28f"
-    ctx.fillRect(0, 600, ctx.width,ctx.height/2)
-    */
-
     ctx.fillStyle = '#F2AB41';
     ctx.fillRect(0, 0, ctx.width, ctx.height);
 
-    this.sun(ctx);
-    this.clouds(ctx);
+    this.drawSun(ctx);
+    this.drawClouds(ctx);
 
-    drawImageCenter(
-      this.night,
-      ctx.width / 2,
-      ctx.height / 2,
-      640,
-      360,
-      1,
-      0,
-      ctx,
-      1
-    );
+    drawImageCenter(this.night, ctx.width / 2, ctx.height / 2, 640, 360, ctx);
   }
 
-  sun(ctx) {
+  drawSun(ctx) {
     if (this.sunX <= 0) {
       this.sunX = ctx.width;
     } else {
@@ -68,29 +48,19 @@ export default class Background {
 
     ctx.fillStyle = '#ffd900';
     ctx.beginPath();
-    var vector = getXYfromPolar(this.sunTheta, this.sunR);
-    this.sunX = vector[0];
-    this.sunY = vector[1];
+    const vector = getXYfromPolar(this.sunTheta, this.sunR);
+    this.sunX = vector.x;
+    this.sunY = vector.y;
     ctx.arc(this.sunX, this.sunY, 50, 0, 2 * Math.PI);
     ctx.fill();
   }
 
-  clouds(ctx) {
+  drawClouds(ctx) {
     this.cloudX += 0.1;
     if (this.cloudX >= ctx.width + 500) {
       this.cloudX = -500;
     }
-    drawImageCenter(
-      this.cloud,
-      this.cloudX,
-      this.cloudY,
-      212,
-      42,
-      1,
-      0,
-      ctx,
-      1
-    );
+    drawImageCenter(this.cloud, this.cloudX, this.cloudY, 212, 42, ctx);
   }
 
   //DayCycle()
