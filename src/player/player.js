@@ -15,9 +15,17 @@ import {
   GUN_POSITION_OFFSET_X,
   GUN_POSITION_OFFSET_Y,
   PLAYER_SHOOT_COOLDOWN,
-} from './constants.js';
+} from '../constants.js';
+import {
+  STILL,
+  ACCELERATING_RIGHT,
+  ACCELERATING_LEFT,
+  MOVING_RIGHT,
+  MOVING_LEFT,
+} from './movement_types.js';
 import Hat from './hat.js';
 import Gun from './gun.js';
+import ParticleSystem from './particle_system.js';
 
 export class GenericPlayer {
   constructor(x, y) {
@@ -26,8 +34,9 @@ export class GenericPlayer {
     this.lives = 2;
     this.hat = new Hat(this.x, this.y);
     this.gun = new Gun(this.x, this.y);
+    this.particleSystem = new ParticleSystem();
     this.gunRecoil = 0;
-    this.isMoving = false;
+    this.movementType = STILL;
     this.isTouchingGround = false;
   }
 
@@ -75,7 +84,17 @@ export class GenericPlayer {
     this.y = y;
     this.angle = angle;
     this.gunRecoil = gunRecoil;
+    this.genericUpdate();
+  }
+
+  genericUpdate() {
     this.hat.update(this.x, this.y);
+    this.particleSystem.update(
+      this.x,
+      this.y,
+      this.isTouchingGround,
+      this.movementType
+    );
   }
 
   draw(context) {
@@ -98,12 +117,14 @@ export class GenericPlayer {
 
       this.gun.draw(context, armEndX, armEndY, this.angle, this.gunRecoil);
     }
+
+    this.particleSystem.draw(context);
   }
 }
 
 export default class Player extends GenericPlayer {
-  constructor(x, y, isMoving, isTouchingGround) {
-    super(x, y, isMoving, isTouchingGround);
+  constructor(x, y) {
+    super(x, y);
     this.xSpeed = 0;
     this.ySpeed = 0;
     this.gunRecoilForce = 0;
@@ -160,16 +181,10 @@ export default class Player extends GenericPlayer {
         this.gunCooldown = PLAYER_SHOOT_COOLDOWN;
         onShoot(this.getGunBarrelX(), this.getGunBarrelY(), this.angle);
       }
-      if (this.isTouching(collisions)) {
+      if (collisions[0] && this.ySpeed == 0) {
         this.isTouchingGround = true;
       } else {
         this.isTouchingGround = false;
-      }
-
-      if (this.Moving()) {
-        this.isMoving = true;
-      } else {
-        this.isMoving = false;
       }
     }
 
@@ -193,10 +208,15 @@ export default class Player extends GenericPlayer {
     this.y += this.ySpeed;
     this.x += this.xSpeed;
 
+    this.calculateAngles(mouseX, mouseY);
+    this.calculateMovementType(keys);
+    this.genericUpdate();
+  }
+
+  calculateAngles(mouseX, mouseY) {
     const deltaX = mouseX - this.getArmStartX();
     const deltaY = mouseY - this.getArmStartY();
 
-    this.hat.update(this.x, this.y);
     if (this.lives > 0) this.angle = -Math.atan2(deltaX, deltaY) + Math.PI / 2;
 
     this.gunCooldown -= 1;
@@ -219,19 +239,28 @@ export default class Player extends GenericPlayer {
     else this.angle -= this.armRecoil * 0.5;
   }
 
+  calculateMovementType(keys) {
+    if (this.xSpeed == PLAYER_MAX_X_SPEED) this.movementType = MOVING_RIGHT;
+    else if (this.xSpeed == -PLAYER_MAX_X_SPEED)
+      this.movementType = MOVING_LEFT;
+    else if (keys.D) this.movementType = ACCELERATING_RIGHT;
+    else if (keys.A) this.movementType = ACCELERATING_LEFT;
+    else this.movementType = STILL;
+  }
+
   moveRight(collisions) {
     if (collisions[0] && this.xSpeed < 0) this.xSpeed /= 4;
     this.xSpeed = Math.min(
-      Math.max(-PLAYER_MAX_X_SPEED, this.xSpeed + PLAYER_ACCELERATION),
+      (this.xSpeed += PLAYER_ACCELERATION),
       PLAYER_MAX_X_SPEED
     );
   }
 
   moveLeft(collisions) {
     if (collisions[0] && this.xSpeed > 0) this.xSpeed /= 4;
-    this.xSpeed = Math.min(
-      Math.max(-PLAYER_MAX_X_SPEED, this.xSpeed - PLAYER_ACCELERATION),
-      PLAYER_MAX_X_SPEED
+    this.xSpeed = Math.max(
+      (this.xSpeed -= PLAYER_ACCELERATION),
+      -PLAYER_MAX_X_SPEED
     );
   }
 
@@ -314,16 +343,5 @@ export default class Player extends GenericPlayer {
       collisions[1] = false;
     }
     return collisions;
-  }
-
-  Moving() {
-    if (this.xSpeed != 0 || this.ySpeed != 0) {
-      return true;
-    }
-  }
-  isTouching(collisions) {
-    if (collisions[0] != false) {
-      return true;
-    }
   }
 }

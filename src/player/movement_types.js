@@ -1,0 +1,5 @@
+export const STILL = 'STILL';
+export const ACCELERATING_RIGHT = 'ACCELERATING_RIGHT';
+export const ACCELERATING_LEFT = 'ACCELERATING_LEFT';
+export const MOVING_RIGHT = 'MOVING_RIGHT';
+export const MOVING_LEFT = 'MOVING_LEFT';

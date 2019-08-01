@@ -4,9 +4,9 @@ import {
   GUN_POSITION_OFFSET_Y,
   GUN_RECOIL_CENTER_OFFSET_X,
   GUN_RECOIL_CENTER_OFFSET_Y,
-} from './constants.js';
+} from '../constants.js';
 
-import gunSrc from './images/gun_abstract.png';
+import gunSrc from '../images/gun_abstract.png';
 
 const gunImage = new Image();
 gunImage.src = gunSrc;
