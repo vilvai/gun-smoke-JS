@@ -101,7 +101,6 @@ export default class App extends Component {
 
   render() {
     const { gameState, countdownText } = this.state;
-    console.log(gameState, countdownText);
     return (
       <div>
         {gameState !== GAME_STATES.STANDOFF &&

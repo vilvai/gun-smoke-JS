@@ -79,11 +79,13 @@ export class GenericPlayer {
     if (this.lives == 1) this.hat.fly(angle, random);
   }
 
-  update({ x, y, angle, gunRecoil }) {
+  update({ x, y, angle, gunRecoil, movementType, isTouchingGround }) {
     this.x = x;
     this.y = y;
     this.angle = angle;
     this.gunRecoil = gunRecoil;
+    this.movementType = movementType;
+    this.isTouchingGround = isTouchingGround;
     this.genericUpdate();
   }
 
