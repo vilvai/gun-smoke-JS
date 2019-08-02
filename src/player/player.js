@@ -26,6 +26,7 @@ import {
 import Hat from './hat.js';
 import Gun from './gun.js';
 import ParticleSystem from './particle_system.js';
+import Wound from './wound.js';
 
 export class GenericPlayer {
   constructor(x, y) {
@@ -76,7 +77,7 @@ export class GenericPlayer {
   }
 
   onHit(x, y, angle, random) {
-    this.wounds.push({ x: x, y: y });
+    this.wounds.push(new Wound(x, y));
     this.lives -= 1;
     if (this.lives == 1) this.hat.fly(angle, random);
     console.log(this.x, this.y);
@@ -84,17 +85,20 @@ export class GenericPlayer {
   }
 
   update({ x, y, angle, gunRecoil, movementType, isTouchingGround }) {
+    let xChange = this.x - x;
+    let yChange = this.y - y;
     this.x = x;
     this.y = y;
     this.angle = angle;
     this.gunRecoil = gunRecoil;
     this.movementType = movementType;
     this.isTouchingGround = isTouchingGround;
-    this.genericUpdate();
+    this.genericUpdate(xChange, yChange);
   }
 
-  genericUpdate() {
+  genericUpdate(xChange, yChange) {
     this.hat.update(this.x, this.y);
+    this.wounds.forEach(w => w.update(xChange, yChange));
     this.particleSystem.update(
       this.x,
       this.y,
@@ -108,6 +112,9 @@ export class GenericPlayer {
     context.fillStyle = playerColor;
 
     context.fillRect(this.x, this.y, PLAYER_WIDTH, PLAYER_HEIGHT);
+    if (this.wounds && this.wounds.length) {
+      this.wounds.forEach(w => w.draw(context));
+    }
     this.hat.draw(context);
 
     if (this.angle) {
@@ -216,7 +223,7 @@ export default class Player extends GenericPlayer {
 
     this.calculateAngles(mouseX, mouseY);
     this.calculateMovementType(keys);
-    this.genericUpdate();
+    this.genericUpdate(this.xSpeed, this.ySpeed);
   }
 
   calculateAngles(mouseX, mouseY) {
