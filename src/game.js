@@ -16,24 +16,7 @@ import Bullet from './bullet.js';
 import Background from './background.js';
 
 import { setupPeer, connectToHost } from './network/util.js';
-
-const getHostId = address => {
-  const hrefArray = window.location.href.split('?');
-  if (hrefArray.length == 1) return false;
-  if (!hrefArray[1].includes('host=')) return false;
-  return hrefArray[1].split('host=')[1];
-};
-
-const createRandomId = () => {
-  const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghiklmnopqrstuvwxyz'.split(
-    ''
-  );
-  let str = '';
-  for (let i = 0; i < 16; i++) {
-    str += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return str;
-};
+import { getHostId, createRandomId } from './utils.js';
 
 export default class Game {
   constructor(container, onSetGameState) {

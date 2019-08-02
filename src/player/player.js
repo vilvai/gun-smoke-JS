@@ -151,22 +151,11 @@ export default class Player extends GenericPlayer {
     const collisions = this.calculateCollisions(platforms);
 
     if (isRoundStarted && this.lives > 0) {
-      if (keys.D) {
-        this.moveRight(collisions);
-        this.lives = 100;
-      } else if (keys.A) this.moveLeft(collisions);
+      if (keys.D) this.moveRight(collisions);
+      else if (keys.A) this.moveLeft(collisions);
       if (keys.W) this.jump(collisions);
       else if (keys.S) this.drop(collisions);
-
-      if (mouseClicked) {
-        this.gunRecoilForce = 0.32;
-        this.gunRecoilReturn = -0.04;
-        this.armRecoilForce = 0.4;
-        this.armRecoilReturn = 0;
-        this.armRecoilDelay = 2;
-        this.gunCooldown = PLAYER_SHOOT_COOLDOWN;
-        onShoot(this.getGunBarrelX(), this.getGunBarrelY(), this.angle);
-      }
+      if (mouseClicked && this.gunCooldown <= 0) this.shoot(onShoot);
     }
     if (this.lives <= 0 || (!keys.A && !keys.D)) {
       if (collisions.bottom) {
@@ -277,6 +266,16 @@ export default class Player extends GenericPlayer {
       this.ySpeed == 0
     )
       collisions.bottom = false;
+  }
+
+  shoot(onShoot) {
+    this.gunRecoilForce = 0.32;
+    this.gunRecoilReturn = -0.04;
+    this.armRecoilForce = 0.4;
+    this.armRecoilReturn = 0;
+    this.armRecoilDelay = 2;
+    this.gunCooldown = PLAYER_SHOOT_COOLDOWN;
+    onShoot(this.getGunBarrelX(), this.getGunBarrelY(), this.angle);
   }
 
   calculateCollisions(platforms) {
