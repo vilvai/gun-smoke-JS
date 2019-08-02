@@ -38,6 +38,7 @@ export class GenericPlayer {
     this.gunRecoil = 0;
     this.movementType = STILL;
     this.isTouchingGround = false;
+    this.wounds = [];
   }
 
   getArmStartX() {
@@ -74,9 +75,12 @@ export class GenericPlayer {
     );
   }
 
-  onHit(angle, random) {
+  onHit(x, y, angle, random) {
+    this.wounds.push({ x: x, y: y });
     this.lives -= 1;
     if (this.lives == 1) this.hat.fly(angle, random);
+    console.log(this.x, this.y);
+    console.log(this.wounds);
   }
 
   update({ x, y, angle, gunRecoil, movementType, isTouchingGround }) {

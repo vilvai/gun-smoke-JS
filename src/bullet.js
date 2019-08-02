@@ -34,7 +34,7 @@ export default class Bullet {
       this.y <= playerY + PLAYER_HEIGHT
     ) {
       const angle = -Math.atan2(this.xSpeed, this.ySpeed) + Math.PI / 2;
-      onHitPlayer(angle, this.id);
+      onHitPlayer(this.x, this.y, angle, this.id);
       onRemove(this.id);
     }
     if (

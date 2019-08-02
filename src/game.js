@@ -88,7 +88,12 @@ export const onReceiveData = data => {
       break;
     case 'hit':
       onRemoveBullet(data.bulletId);
-      otherPlayersById[data.playerId].onHit(data.angle, data.random);
+      otherPlayersById[data.playerId].onHit(
+        data.x,
+        data.y,
+        data.angle,
+        data.random
+      );
       break;
     case 'hitPlatform':
       onRemoveBullet(data.bulletId);
@@ -142,10 +147,10 @@ const onRemoveBullet = bulletId => {
   bullets = bullets.filter(bullet => bullet.id !== bulletId);
 };
 
-const onHitPlayer = (angle, bulletId) => {
+const onHitPlayer = (x, y, angle, bulletId) => {
   const random = Math.random();
-  player.onHit(angle, random);
-  sendData({ type: 'hit', angle, random, playerId, bulletId });
+  player.onHit(x, y, angle, random);
+  sendData({ type: 'hit', x, y, angle, random, playerId, bulletId });
 };
 
 const onHitPlatform = bulletId => {
