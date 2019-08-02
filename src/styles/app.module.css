@@ -22,10 +22,10 @@ body {
   flex-direction: column;
 }
 
-.countdown {
+.gameStateText {
   pointer-events: none;
   position: absolute;
-  top: 200px;
+  top: calc(50% - 300px);
   width: 100%;
   display: flex;
   justify-content: center;
@@ -39,7 +39,7 @@ body {
   transition: opacity 1s;
 }
 
-.countdownFade {
+.gameStateTextFade {
   opacity: 0;
 }
 

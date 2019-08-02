@@ -5,7 +5,7 @@ import {
   ACCELERATING_LEFT,
   MOVING_RIGHT,
   MOVING_LEFT,
-} from './movement_types.js';
+} from './movement_states.js';
 
 const EMIT_INTERVAL = 3;
 
@@ -47,10 +47,10 @@ export default class ParticleSystem {
             startY,
             direction,
             random,
-            x: startX + Math.log(time) * -direction * (8 + random * 10),
+            x: startX + Math.log(time) * -direction * (5 + random * 6),
             y: startY - Math.log(time) * (1 + random * 6),
             alpha: 0.9 ** time,
-            scale: 0.25 + Math.log(time) / 2,
+            scale: 0.25 + Math.log(time) / 3,
             time: time + 1,
           };
         })

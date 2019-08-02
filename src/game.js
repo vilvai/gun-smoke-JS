@@ -1,173 +1,54 @@
 import Sketch from './lib/sketch.js';
 
 import { GAME_WIDTH, GAME_HEIGHT, COUNTDOWN } from './constants.js';
+import {
+  GAME_STATE_LINK,
+  GAME_STATE_AIM_DOWN,
+  GAME_STATE_READY,
+  GAME_STATE_GAME_STARTED,
+  GAME_STATE_GAME_WON,
+  GAME_STATE_GAME_LOST,
+} from './app.jsx';
+
 import Player, { GenericPlayer } from './player/player.js';
 import Platform from './platform.js';
 import Bullet from './bullet.js';
 import Background from './background.js';
 
 import { setupPeer, connectToHost } from './network/util.js';
+import { getHostId, createRandomId } from './utils.js';
 
-let player;
-let playerId;
-const otherPlayersById = {};
-const allPlayersDataById = {};
-export let playerIsHost = false;
-const connectionsById = {};
-let hostConnection;
-
-let mouseClicked = false;
-export let isRoundStarted = false;
-let countdownLeft = COUNTDOWN;
-
-const platforms = [
-  // bounding box
-  new Platform(0, 670, 1280, 100, true), // floor
-  new Platform(0, -50, 1280, 50, true), // ceiling
-  new Platform(-50, 0, 50, 720, true), // left wall
-  new Platform(1280, 0, 50, 720, true), // right wall
-
-  // platforms
-  new Platform(340, 490, 600, 30, false),
-  new Platform(0, 320, 150, 20, false),
-  new Platform(1130, 320, 150, 20, false),
-  new Platform(390, 310, 500, 20, false),
-  // new Platform(340, 500, 600, 30, false),
-];
-
-const background = new Background();
-
-let bullets = [];
-
-const getHostId = address => {
-  const hrefArray = window.location.href.split('?');
-  if (hrefArray.length == 1) return false;
-  if (!hrefArray[1].includes('host=')) return false;
-  return hrefArray[1].split('host=')[1];
-};
-
-const sendPlayerData = () => {
-  if (playerIsHost) {
-    Object.values(connectionsById).forEach(connection =>
-      connection.send({
-        type: 'players',
-        players: allPlayersDataById,
-      })
-    );
-  } else {
-    hostConnection &&
-      hostConnection.send({
-        type: 'players',
-        players: {
-          [playerId]: allPlayersDataById[playerId],
-        },
-      });
-  }
-};
-
-const sendData = data => {
-  if (playerIsHost)
-    Object.values(connectionsById).forEach(connection => connection.send(data));
-  else hostConnection.send(data);
-};
-
-export const onReceiveData = data => {
-  if (!data.type) return;
-  switch (data.type) {
-    case 'players':
-      Object.entries(data.players).forEach(
-        ([id, playerData]) => (allPlayersDataById[id] = playerData)
-      );
-      break;
-    case 'bullet':
-      createBullet(data.x, data.y, data.angle, data.bulletId);
-      break;
-    case 'round':
-      isRoundStarted = data.isRoundStarted;
-      startGameHandler();
-      break;
-    case 'hit':
-      onRemoveBullet(data.bulletId);
-      otherPlayersById[data.playerId].onHit(data.angle, data.random);
-      break;
-    case 'hitPlatform':
-      onRemoveBullet(data.bulletId);
-      break;
-    default:
-  }
-};
-
-export const startGame = connection => {
-  if (playerIsHost) {
-    connectionsById[connection.peer] = connection;
-    player = new Player(180, 300);
-    otherPlayersById[connection.peer] = new GenericPlayer(780, 300);
-    allPlayersDataById[connection.peer] = {
-      x: 1060,
-      y: 300,
-    };
-  } else {
-    hostConnection = connection;
-    player = new Player(1060, 300);
-    otherPlayersById[connection.peer] = new GenericPlayer(180, 300);
-    allPlayersDataById[connection.peer] = {
-      x: 180,
-      y: 300,
-    };
-  }
-};
-
-const createRandomId = () => {
-  const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghiklmnopqrstuvwxyz'.split(
-    ''
-  );
-  let str = '';
-  for (let i = 0; i < 16; i++) {
-    str += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return str;
-};
-
-const onShoot = (x, y, angle) => {
-  const bulletId = createRandomId();
-  sendData({ type: 'bullet', x, y, angle, bulletId });
-  createBullet(x, y, angle, bulletId);
-};
-
-const createBullet = (x, y, angle, bulletId) => {
-  bullets.push(new Bullet(x, y, angle, bulletId));
-};
-
-const onRemoveBullet = bulletId => {
-  bullets = bullets.filter(bullet => bullet.id !== bulletId);
-};
-
-const onHitPlayer = (angle, bulletId) => {
-  const random = Math.random();
-  player.onHit(angle, random);
-  sendData({ type: 'hit', angle, random, playerId, bulletId });
-};
-
-const onHitPlatform = bulletId => {
-  onRemoveBullet(bulletId);
-  sendData({ type: 'hitPlatform', bulletId });
-};
-
-export const onEndGame = () => {
-  alert('Game ended');
-};
-let startGameHandler;
 export default class Game {
-  constructor(
-    container,
-    onSetLinkText,
-    onPlayerJoin,
-    onStartStandoff,
-    onChangeCountdownText,
-    onStartGame
-  ) {
-    startGameHandler = onStartGame;
-    this.onChangeCountdownText = onChangeCountdownText;
+  constructor(container, onSetGameState) {
+    this.onSetGameState = onSetGameState;
+
+    this.player;
+    this.playerId;
+    this.otherPlayersById = {};
+    this.allPlayersDataById = {};
+    this.playerIsHost = false;
+    this.connectionsById = {};
+    this.hostConnection;
+
+    this.mouseClicked = false;
+    this.isGameStarted = false;
+    this.countdownLeft = COUNTDOWN;
+
+    this.background = new Background();
+    this.platforms = [
+      // bounding box
+      new Platform(0, 670, 1280, 100, true), // floor
+      new Platform(0, -50, 1280, 50, true), // ceiling
+      new Platform(-50, 0, 50, 720, true), // left wall
+      new Platform(1280, 0, 50, 720, true), // right wall
+
+      // platforms
+      new Platform(340, 490, 600, 30, false),
+      new Platform(0, 320, 150, 20, false),
+      new Platform(1130, 320, 150, 20, false),
+      new Platform(390, 310, 500, 20, false),
+    ];
+    this.bullets = [];
 
     const ctx = Sketch.create({
       container,
@@ -182,114 +63,256 @@ export default class Game {
       const onError = alert;
 
       if (hostId == 'DEBUG') {
-        onStartGame();
-        isRoundStarted = true;
-        playerIsHost = true;
-        player = new Player(180, 300);
+        this.startGame();
+        this.playerIsHost = true;
+        this.player = new Player(180, 300);
         return;
       } else if (!hostId) {
-        playerIsHost = true;
+        this.playerIsHost = true;
 
-        setupPeer(onReceiveData, onEndGame).then(peer => {
-          playerId = peer.id;
-          onSetLinkText(window.location.href + '?host=' + peer.id);
+        setupPeer(this.onReceiveData).then(peer => {
+          this.playerId = peer.id;
+          this.onSetGameState({
+            gameState: GAME_STATE_LINK,
+            linkText: window.location.href + '?host=' + peer.id,
+          });
 
           peer.on('connection', connection => {
-            startGame(connection);
-            onStartStandoff();
-            connection.on('data', onReceiveData);
-            connection.on('close', onEndGame);
+            this.startStandoff(connection);
+            connection.on('data', this.onReceiveData);
+            connection.on('close', this.onDisconnect);
             setTimeout(() => peer.disconnect(), 1000);
           });
         }, onError);
       } else {
-        playerIsHost = false;
-        setupPeer(onReceiveData, onEndGame)
+        this.playerIsHost = false;
+        setupPeer(this.onReceiveData)
           .then(peer => {
-            playerId = peer.id;
-            return connectToHost(peer, hostId, onReceiveData, onEndGame);
+            this.playerId = peer.id;
+            return connectToHost(
+              peer,
+              hostId,
+              this.onReceiveData,
+              this.onDisconnect
+            );
           }, onError)
           .then(connection => {
-            startGame(connection);
-            onStartStandoff();
+            this.startStandoff(connection);
           });
       }
     };
 
-    ctx.mousedown = () => (mouseClicked = true);
+    ctx.mousedown = () => (this.mouseClicked = true);
 
     ctx.update = () => {
-      if (player) {
-        player.update(
+      if (this.player) {
+        this.player.update(
           ctx.keys,
-          platforms,
+          this.platforms,
           ctx.mouse.x,
           ctx.mouse.y,
-          mouseClicked,
-          isRoundStarted,
-          onShoot
+          this.mouseClicked,
+          this.isGameStarted,
+          this.onShoot
         );
 
-        allPlayersDataById[playerId] = {
-          x: player.x,
-          y: player.y,
-          angle: player.angle,
-          gunRecoil: player.gunRecoil,
-          ready: player.ready,
-          movementType: player.movementType,
-          isTouchingGround: player.isTouchingGround,
+        const {
+          x,
+          y,
+          angle,
+          gunRecoil,
+          ready,
+          movementType,
+          isTouchingGround,
+        } = this.player;
+
+        this.allPlayersDataById[this.playerId] = {
+          x,
+          y,
+          angle,
+          gunRecoil,
+          ready,
+          movementType,
+          isTouchingGround,
         };
       }
 
-      if (!isRoundStarted && player) {
-        if (player.angle <= 1.2 || player.angle >= 1.94)
-          this.onChangeCountdownText('Aim down');
-        else this.onChangeCountdownText('Ready...');
+      if (!this.isGameStarted && this.player) {
+        if (this.player.angle <= 1.2 || this.player.angle >= 1.94)
+          this.onSetGameState({ gameState: GAME_STATE_AIM_DOWN });
+        else this.onSetGameState({ gameState: GAME_STATE_READY });
         if (
-          Object.values(allPlayersDataById).every(
+          Object.values(this.allPlayersDataById).every(
             player => player.angle > 1 && player.angle < 2.35
           )
         )
-          countdownLeft -= 1;
-        else countdownLeft = COUNTDOWN;
+          this.countdownLeft -= 1;
+        else this.countdownLeft = COUNTDOWN;
 
-        if (countdownLeft == 0 && playerIsHost) {
-          Object.values(connectionsById).forEach(connection =>
-            connection.send({ type: 'round', isRoundStarted: true })
+        if (this.countdownLeft == 0 && this.playerIsHost) {
+          Object.values(this.connectionsById).forEach(connection =>
+            connection.send({ type: 'startGame' })
           );
-          isRoundStarted = true;
-          startGameHandler();
+          this.startGame();
         }
       }
 
-      Object.entries(otherPlayersById).forEach(([id, otherPlayer]) =>
-        otherPlayer.update(allPlayersDataById[id])
+      Object.entries(this.otherPlayersById).forEach(([id, otherPlayer]) =>
+        otherPlayer.update(this.allPlayersDataById[id])
       );
-      bullets.forEach(bullet =>
+      this.bullets.forEach(bullet =>
         bullet.update(
-          onRemoveBullet,
-          onHitPlayer,
-          onHitPlatform,
-          player.x,
-          player.y,
-          platforms
+          this.onRemoveBullet,
+          this.onHitPlayer,
+          this.onHitPlatform,
+          this.player.x,
+          this.player.y,
+          this.platforms
         )
       );
-      mouseClicked = false;
-      sendPlayerData();
+      this.mouseClicked = false;
+      this.sendPlayerData();
     };
 
     ctx.draw = () => {
-      background.draw(ctx);
+      this.background.draw(ctx);
 
-      platforms.forEach(platform => platform.draw(ctx));
-      bullets.forEach(bullet => bullet.draw(ctx));
+      this.platforms.forEach(platform => platform.draw(ctx));
+      this.bullets.forEach(bullet => bullet.draw(ctx));
 
-      if (player) player.draw(ctx);
+      if (this.player) this.player.draw(ctx);
 
-      Object.values(otherPlayersById).forEach(otherPlayer =>
+      Object.values(this.otherPlayersById).forEach(otherPlayer =>
         otherPlayer.draw(ctx)
       );
     };
   }
+
+  sendPlayerData = () => {
+    if (this.playerIsHost) {
+      Object.values(this.connectionsById).forEach(connection =>
+        connection.send({
+          type: 'players',
+          players: this.allPlayersDataById,
+        })
+      );
+    } else {
+      this.hostConnection &&
+        this.hostConnection.send({
+          type: 'players',
+          players: {
+            [this.playerId]: this.allPlayersDataById[this.playerId],
+          },
+        });
+    }
+  };
+
+  sendData = data => {
+    if (this.playerIsHost)
+      Object.values(this.connectionsById).forEach(connection =>
+        connection.send(data)
+      );
+    else this.hostConnection.send(data);
+  };
+
+  onReceiveData = data => {
+    if (!data.type) return;
+    switch (data.type) {
+      case 'players':
+        Object.entries(data.players).forEach(
+          ([id, playerData]) => (this.allPlayersDataById[id] = playerData)
+        );
+        break;
+      case 'bullet':
+        this.createBullet(data.x, data.y, data.angle, data.bulletId);
+        break;
+      case 'startGame':
+        this.startGame();
+        break;
+      case 'hit':
+        this.onRemoveBullet(data.bulletId);
+        this.otherPlayersById[data.playerId].onHit(data.angle, data.random);
+        break;
+      case 'hitPlatform':
+        this.onRemoveBullet(data.bulletId);
+        break;
+      case 'gameOver':
+        this.onSetGameState({
+          gameState: GAME_STATE_GAME_WON,
+          gameStateTextFade: false,
+        });
+        break;
+      default:
+    }
+  };
+
+  startStandoff = connection => {
+    if (this.playerIsHost) this.connectionsById[connection.peer] = connection;
+    else this.hostConnection = connection;
+    this.setupGame(connection.peer);
+  };
+
+  gameOver = () => {
+    this.onSetGameState({
+      gameState: GAME_STATE_GAME_LOST,
+      gameStateTextFade: false,
+    });
+    this.sendData({ type: 'gameOver' });
+  };
+
+  // const otherPlayerId = Object.keys(this.otherPlayersById)[0];
+
+  setupGame = otherPlayerId => {
+    if (this.playerIsHost) {
+      this.player = new Player(180, 300);
+      this.otherPlayersById[otherPlayerId] = new GenericPlayer(780, 300);
+      this.allPlayersDataById[otherPlayerId] = { x: 1060, y: 300 };
+    } else {
+      this.player = new Player(1060, 300);
+      this.otherPlayersById[otherPlayerId] = new GenericPlayer(180, 300);
+      this.allPlayersDataById[otherPlayerId] = { x: 180, y: 300 };
+    }
+    this.onSetGameState({ gameState: GAME_STATE_AIM_DOWN });
+  };
+
+  startGame = () => {
+    this.isGameStarted = true;
+    this.onSetGameState({ gameState: GAME_STATE_GAME_STARTED });
+    setTimeout(() => this.onSetGameState({ gameStateTextFade: true }), 2000);
+  };
+
+  onShoot = (x, y, angle) => {
+    const bulletId = createRandomId();
+    this.sendData({ type: 'bullet', x, y, angle, bulletId });
+    this.createBullet(x, y, angle, bulletId);
+  };
+
+  createBullet = (x, y, angle, bulletId) => {
+    this.bullets.push(new Bullet(x, y, angle, bulletId));
+  };
+
+  onRemoveBullet = bulletId => {
+    this.bullets = this.bullets.filter(bullet => bullet.id !== bulletId);
+  };
+
+  onHitPlayer = (angle, bulletId) => {
+    const random = Math.random();
+    this.player.onHit(angle, random, this.gameOver);
+    this.sendData({
+      type: 'hit',
+      angle,
+      random,
+      playerId: this.playerId,
+      bulletId,
+    });
+  };
+
+  onHitPlatform = bulletId => {
+    this.onRemoveBullet(bulletId);
+    this.sendData({ type: 'hitPlatform', bulletId });
+  };
+
+  onDisconnect = () => {
+    alert('Other player disconnected!');
+  };
 }

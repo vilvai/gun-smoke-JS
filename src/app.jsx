@@ -5,114 +5,81 @@ import Game from './game.js';
 
 import styles from './styles/app.module.css';
 
-const GAME_STATES = {
-  LOADING: 'LOADING',
-  LINK: 'LINK',
-  READY_SCREEN: 'READY_SCREEN',
-  STANDOFF: 'STANDOFF',
-  GAME_STARTED: 'GAME_STARTED',
-};
+export const GAME_STATE_LOADING = 'LOADING';
+export const GAME_STATE_LINK = 'LINK';
+export const GAME_STATE_AIM_DOWN = 'AIM_DOWN';
+export const GAME_STATE_READY = 'READY';
+export const GAME_STATE_GAME_STARTED = 'GAME_STARTED';
+export const GAME_STATE_GAME_WON = 'GAME_WON';
+export const GAME_STATE_GAME_LOST = 'GAME_LOST';
 
 export default class App extends Component {
   state = {
-    gameState: GAME_STATES.LOADING,
+    gameState: GAME_STATE_LOADING,
     linkText: null,
-    countdownText: 'Aim down',
-    countdownFade: false,
+    gameStateTextFade: false,
   };
 
   componentDidMount() {
-    new Game(
-      this.sketchContainer,
-      this.handleSetLinkText,
-      this.handlePlayerJoined,
-      this.handleStartStandoff,
-      this.handleCountdownTextChange,
-      this.handleStartGame
-    );
+    new Game(this.sketchContainer, this.handleSetState);
   }
 
-  handleSetLinkText = linkText =>
-    this.setState({
-      gameState: GAME_STATES.LINK,
-      linkText,
-    });
-
-  handlePlayerJoined = () =>
-    this.setState({
-      gameState: GAME_STATES.READY_SCREEN,
-    });
-
-  handleStartStandoff = () =>
-    this.setState({
-      gameState: GAME_STATES.STANDOFF,
-    });
-
-  handleCountdownTextChange = countdownText =>
-    this.state.countdownText !== countdownText &&
-    this.setState({
-      countdownText,
-    });
-
-  handleStartGame = () => {
-    this.setState({
-      gameState: GAME_STATES.GAME_STARTED,
-      countdownText: 'Fire!',
-    });
-    setTimeout(() => this.setState({ countdownFade: true }), 2000);
-  };
+  handleSetState = state => this.setState(state);
 
   renderOverlay() {
     const { gameState, linkText } = this.state;
     switch (gameState) {
-      case GAME_STATES.LOADING:
+      case GAME_STATE_LOADING:
         return 'Loading…';
-      case GAME_STATES.LINK:
+      case GAME_STATE_LINK:
         return (
           <div className={styles.linkContainer}>
             <span>Share this link with a friend:</span>
             <span>{linkText}</span>
           </div>
         );
-      case GAME_STATES.READY_SCREEN:
-        // Ready screen will go here if it's implemented
-        return null;
       default:
         return null;
     }
   }
 
-  renderCountdown() {
-    const { gameState, countdownText, countdownFade } = this.state;
-    if (
-      gameState == GAME_STATES.STANDOFF ||
-      gameState == GAME_STATES.GAME_STARTED
-    )
-      return (
-        <div
-          className={cx(styles.countdown, {
-            [styles.countdownFade]: countdownFade,
-          })}
-        >
-          {countdownText}
-        </div>
-      );
+  renderGameStateText() {
+    const { gameState } = this.state;
+    switch (gameState) {
+      case GAME_STATE_AIM_DOWN:
+        return 'Aim down';
+      case GAME_STATE_READY:
+        return 'Ready...';
+      case GAME_STATE_GAME_STARTED:
+        return 'Fire!';
+      case GAME_STATE_GAME_WON:
+        return 'You won! Press Enter for a rematch';
+      case GAME_STATE_GAME_LOST:
+        return 'You lost! Press Enter for a rematch';
+      default:
+        return null;
+    }
   }
 
   render() {
-    const { gameState, countdownText } = this.state;
+    const { gameState, gameStateTextFade } = this.state;
     return (
       <div>
-        {gameState !== GAME_STATES.STANDOFF &&
-          gameState !== GAME_STATES.GAME_STARTED && (
-            <div className={styles.loadingOverlay}>{this.renderOverlay()}</div>
-          )}
-        {this.renderCountdown()}
+        {(gameState === GAME_STATE_LOADING ||
+          gameState === GAME_STATE_LINK) && (
+          <div className={styles.loadingOverlay}>{this.renderOverlay()}</div>
+        )}
+        <div
+          className={cx(styles.gameStateText, {
+            [styles.gameStateTextFade]: gameStateTextFade,
+          })}
+        >
+          {this.renderGameStateText()}
+        </div>
         <div
           className={cx(styles.sketchContainer, {
             [styles.blurEffect]:
-              gameState !== GAME_STATES.STANDOFF &&
-              gameState !== GAME_STATES.GAME_STARTED,
+              gameState === GAME_STATE_LOADING || gameState === GAME_STATE_LINK,
           })}
           ref={ref => (this.sketchContainer = ref)}
         />
