@@ -29,9 +29,11 @@ export default class Game {
     this.playerIsHost = false;
     this.connectionsById = {};
     this.hostConnection;
+    this.resetRequestSent = false;
 
     this.mouseClicked = false;
     this.isGameStarted = false;
+    this.isGameOver = false;
     this.countdownLeft = COUNTDOWN;
 
     this.background = new Background();
@@ -113,6 +115,7 @@ export default class Game {
           ctx.mouse.y,
           this.mouseClicked,
           this.isGameStarted,
+          this.isGameOver,
           this.onShoot
         );
 
@@ -121,9 +124,10 @@ export default class Game {
           y,
           angle,
           gunRecoil,
-          ready,
+          isAimingDown,
           movementType,
           isTouchingGround,
+          isReadyToRematch,
         } = this.player;
 
         this.allPlayersDataById[this.playerId] = {
@@ -131,19 +135,20 @@ export default class Game {
           y,
           angle,
           gunRecoil,
-          ready,
+          isAimingDown,
           movementType,
           isTouchingGround,
+          isReadyToRematch,
         };
       }
 
       if (!this.isGameStarted && this.player) {
-        if (this.player.angle <= 1.2 || this.player.angle >= 1.94)
+        if (!this.player.isAimingDown)
           this.onSetGameState({ gameState: GAME_STATE_AIM_DOWN });
         else this.onSetGameState({ gameState: GAME_STATE_READY });
         if (
           Object.values(this.allPlayersDataById).every(
-            player => player.angle > 1 && player.angle < 2.35
+            player => player.isAimingDown
           )
         )
           this.countdownLeft -= 1;
@@ -156,9 +161,12 @@ export default class Game {
           this.startGame();
         }
       }
-
       Object.entries(this.otherPlayersById).forEach(([id, otherPlayer]) =>
-        otherPlayer.update(this.allPlayersDataById[id])
+        otherPlayer.update(
+          this.allPlayersDataById[id],
+          this.isGameStarted,
+          this.isGameOver
+        )
       );
       this.bullets.forEach(bullet =>
         bullet.update(
@@ -171,6 +179,19 @@ export default class Game {
         )
       );
       this.mouseClicked = false;
+      if (
+        this.playerIsHost &&
+        this.isGameOver &&
+        !this.resetRequestSent &&
+        Object.values(this.allPlayersDataById).every(
+          player => player.isReadyToRematch
+        )
+      ) {
+        const otherPlayerId = Object.keys(this.otherPlayersById)[0];
+        this.resetRequestSent = true;
+        this.setupGame(otherPlayerId);
+        this.sendData({ type: 'rematch' });
+      }
       this.sendPlayerData();
     };
 
@@ -241,7 +262,11 @@ export default class Game {
           gameState: GAME_STATE_GAME_WON,
           gameStateTextFade: false,
         });
+        this.isGameOver = true;
         break;
+      case 'rematch':
+        const otherPlayerId = Object.keys(this.otherPlayersById)[0];
+        this.setupGame(otherPlayerId);
       default:
     }
   };
@@ -257,12 +282,15 @@ export default class Game {
       gameState: GAME_STATE_GAME_LOST,
       gameStateTextFade: false,
     });
+    this.isGameOver = true;
     this.sendData({ type: 'gameOver' });
   };
 
-  // const otherPlayerId = Object.keys(this.otherPlayersById)[0];
-
   setupGame = otherPlayerId => {
+    this.isGameStarted = false;
+    this.isGameOver = false;
+    this.countdownLeft = COUNTDOWN;
+    this.resetRequestSent = false;
     if (this.playerIsHost) {
       this.player = new Player(180, 300);
       this.otherPlayersById[otherPlayerId] = new GenericPlayer(780, 300);

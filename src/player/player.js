@@ -26,6 +26,7 @@ import {
 import Hat from './hat.js';
 import Gun from './gun.js';
 import ParticleSystem from './particle_system.js';
+import Marker from './marker.js';
 
 export class GenericPlayer {
   constructor(x, y) {
@@ -35,9 +36,13 @@ export class GenericPlayer {
     this.hat = new Hat(this.x, this.y);
     this.gun = new Gun(this.x, this.y);
     this.particleSystem = new ParticleSystem();
+    this.marker = new Marker();
+    this.angle = 0;
     this.gunRecoil = 0;
     this.movementType = STILL;
     this.isTouchingGround = false;
+    this.isAimingDown = false;
+    this.isReadyToRematch = false;
   }
 
   getArmStartX() {
@@ -80,17 +85,30 @@ export class GenericPlayer {
     if (this.lives == 0 && onOutOfLives) onOutOfLives();
   }
 
-  update({ x, y, angle, gunRecoil, movementType, isTouchingGround }) {
+  update(
+    {
+      x,
+      y,
+      angle,
+      gunRecoil,
+      movementType,
+      isTouchingGround,
+      isReadyToRematch,
+    },
+    isGameStarted,
+    isGameOver
+  ) {
     this.x = x;
     this.y = y;
     this.angle = angle;
     this.gunRecoil = gunRecoil;
     this.movementType = movementType;
     this.isTouchingGround = isTouchingGround;
-    this.genericUpdate();
+    this.isReadyToRematch = isReadyToRematch;
+    this.genericUpdate(isGameStarted, isGameOver);
   }
 
-  genericUpdate() {
+  genericUpdate(isGameStarted, isGameOver) {
     this.hat.update(this.x, this.y);
     this.particleSystem.update(
       this.x,
@@ -98,12 +116,19 @@ export class GenericPlayer {
       this.isTouchingGround,
       this.movementType
     );
+    if (!isGameStarted)
+      this.isAimingDown = this.angle > 1.2 && this.angle < 1.94;
+    this.marker.update(
+      this.isAimingDown,
+      this.isReadyToRematch,
+      isGameStarted,
+      isGameOver
+    );
   }
 
   draw(context) {
     const playerColor = this.lives > 0 ? '#000' : '#630c0c';
     context.fillStyle = playerColor;
-
     context.fillRect(this.x, this.y, PLAYER_WIDTH, PLAYER_HEIGHT);
     this.hat.draw(context);
 
@@ -122,6 +147,7 @@ export class GenericPlayer {
     }
 
     this.particleSystem.draw(context);
+    this.marker.draw(context, this.x, this.y);
   }
 }
 
@@ -145,18 +171,19 @@ export default class Player extends GenericPlayer {
     mouseX,
     mouseY,
     mouseClicked,
-    isRoundStarted,
+    isGameStarted,
+    isGameOver,
     onShoot
   ) {
     const collisions = this.calculateCollisions(platforms);
-
-    if (isRoundStarted && this.lives > 0) {
+    if (isGameStarted && this.lives > 0) {
       if (keys.D) this.moveRight(collisions);
       else if (keys.A) this.moveLeft(collisions);
       if (keys.W) this.jump(collisions);
       else if (keys.S) this.drop(collisions);
       if (mouseClicked && this.gunCooldown <= 0) this.shoot(onShoot);
     }
+    if (isGameOver && keys.ENTER) this.isReadyToRematch = true;
     if (this.lives <= 0 || (!keys.A && !keys.D)) {
       if (collisions.bottom) {
         this.xSpeed *= 1 - PLAYER_DRAG;
@@ -191,7 +218,7 @@ export default class Player extends GenericPlayer {
 
     this.calculateAngles(mouseX, mouseY);
     this.calculateMovementType(keys);
-    this.genericUpdate();
+    this.genericUpdate(isGameStarted, isGameOver);
   }
 
   calculateAngles(mouseX, mouseY) {
