@@ -46,9 +46,9 @@ export default class Game {
 
       // platforms
       new Platform(340, 490, 600, 30, false),
-      new Platform(0, 320, 150, 20, false),
-      new Platform(1130, 320, 150, 20, false),
-      new Platform(390, 310, 500, 20, false),
+      new Platform(0, 320, 150, 30, false),
+      new Platform(1130, 320, 150, 30, false),
+      new Platform(390, 310, 500, 30, false),
     ];
     this.bullets = [];
 
@@ -58,6 +58,7 @@ export default class Game {
       height: GAME_HEIGHT,
       fullscreen: false,
       autopause: false,
+      eventTarget: document,
     });
 
     ctx.setup = () => {
@@ -306,7 +307,11 @@ export default class Game {
   startGame = () => {
     this.isGameStarted = true;
     this.onSetGameState({ gameState: GAME_STATE_GAME_STARTED });
-    setTimeout(() => this.onSetGameState({ gameStateTextFade: true }), 2000);
+    setTimeout(
+      () =>
+        !this.isGameOver && this.onSetGameState({ gameStateTextFade: true }),
+      2000
+    );
   };
 
   onShoot = (x, y, angle) => {

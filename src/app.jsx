@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import cx from 'classnames';
 
+import Overlay from './overlay.jsx';
 import Game from './game.js';
 
 import styles from './styles/app.module.css';
@@ -26,23 +27,6 @@ export default class App extends Component {
 
   handleSetState = state => this.setState(state);
 
-  renderOverlay() {
-    const { gameState, linkText } = this.state;
-    switch (gameState) {
-      case GAME_STATE_LOADING:
-        return 'Loading…';
-      case GAME_STATE_LINK:
-        return (
-          <div className={styles.linkContainer}>
-            <span>Share this link with a friend:</span>
-            <span>{linkText}</span>
-          </div>
-        );
-      default:
-        return null;
-    }
-  }
-
   renderGameStateText() {
     const { gameState } = this.state;
     switch (gameState) {
@@ -62,13 +46,10 @@ export default class App extends Component {
   }
 
   render() {
-    const { gameState, gameStateTextFade } = this.state;
+    const { gameState, gameStateTextFade, linkText } = this.state;
     return (
       <div>
-        {(gameState === GAME_STATE_LOADING ||
-          gameState === GAME_STATE_LINK) && (
-          <div className={styles.loadingOverlay}>{this.renderOverlay()}</div>
-        )}
+        <Overlay gameState={gameState} linkText={linkText} />
         <div
           className={cx(styles.gameStateText, {
             [styles.gameStateTextFade]: gameStateTextFade,

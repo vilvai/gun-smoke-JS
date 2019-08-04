@@ -3,25 +3,6 @@ body {
   overflow: hidden;
 }
 
-.loadingOverlay {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(255, 255, 255, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 30px;
-  font-family: monospace;
-  text-align: center;
-  z-index: 1;
-}
-
-.linkContainer {
-  display: flex;
-  flex-direction: column;
-}
-
 .gameStateText {
   pointer-events: none;
   position: absolute;
@@ -44,7 +25,6 @@ body {
 }
 
 .sketchContainer {
-  /* cursor: none; */
   position: absolute;
   top: 0;
   left: 0;
