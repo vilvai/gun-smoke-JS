@@ -7,7 +7,7 @@ import styles from './styles/overlay.module.css';
 
 export default class Overlay extends Component {
   state = {
-    tooltipText: 'Copy link to clipboard',
+    tooltipVisible: false,
   };
 
   handleCopy = () => {
@@ -15,15 +15,14 @@ export default class Overlay extends Component {
       this.inputElement.select();
       document.execCommand('copy');
     }
-    this.setState({ tooltipText: 'Link copied to clipboard' });
+    this.setState({ tooltipVisible: true });
   };
 
-  handleMouseout = () =>
-    this.setState({ tooltipText: 'Copy link to clipboard' });
+  handleMouseout = () => this.setState({ tooltipVisible: false });
 
   render() {
     const { gameState, linkText } = this.props;
-    const { tooltipText } = this.state;
+    const { tooltipVisible } = this.state;
     switch (gameState) {
       case GAME_STATE_LOADING:
         return <div className={styles.loadingOverlay}>Loading…</div>;
@@ -45,7 +44,13 @@ export default class Overlay extends Component {
                   onMouseOut={this.handleMouseout}
                 >
                   Copy
-                  <div className={styles.linkTooltip}>{tooltipText}</div>
+                  <div
+                    className={cx(styles.linkTooltip, {
+                      [styles.linkTooltipHidden]: !tooltipVisible,
+                    })}
+                  >
+                    Link copied to clipboard
+                  </div>
                 </button>
               </div>
             </div>

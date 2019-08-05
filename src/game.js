@@ -100,6 +100,7 @@ export default class Game {
             );
           }, onError)
           .then(connection => {
+            this.onSetGameState({ scorePositionsReversed: true });
             this.startStandoff(connection);
           });
       }

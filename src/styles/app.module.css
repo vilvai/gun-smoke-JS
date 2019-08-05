@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto+Condensed:700&display=swap');
+
 body {
   margin: 0;
   overflow: hidden;
@@ -8,12 +10,8 @@ body {
   position: absolute;
   top: calc(50% - 300px);
   width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 50px;
-  font-weight: bold;
-  font-family: monospace;
+  font-size: 52px;
+  font-family: 'Roboto Condensed';
   text-align: center;
   opacity: 1;
   z-index: 1;
@@ -22,6 +20,24 @@ body {
 
 .gameStateTextFade {
   opacity: 0;
+}
+
+.scoreContainer {
+  pointer-events: none;
+  position: absolute;
+  display: flex;
+  margin: 0 auto;
+  z-index: 1;
+  justify-content: space-between;
+  font-size: 50px;
+  line-height: 50px;
+  font-family: 'Roboto Condensed';
+  padding: 8px 12px;
+  box-sizing: border-box;
+}
+
+.scoreReversed {
+  flex-direction: row-reverse;
 }
 
 .sketchContainer {

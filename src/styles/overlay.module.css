@@ -14,8 +14,9 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 30px;
-  font-family: sans-serif;
+  font-size: 36px;
+  line-height: 36px;
+  font-family: 'Roboto Condensed';
   text-align: center;
   z-index: 1;
 }
@@ -36,7 +37,7 @@
 
 .linkText {
   flex: 1;
-  font-size: 26px;
+  font-size: 24px;
   font-family: monospace;
   padding: 2px 5px;
   border: 1px solid var(--borderColor);
@@ -65,7 +66,6 @@
 }
 
 .linkTooltip {
-  visibility: hidden;
   pointer-events: none;
   position: absolute;
   width: 100px;
@@ -77,8 +77,7 @@
   font-size: 16px;
   font-weight: normal;
   box-shadow: 2px 2px 5px 0px rgba(0, 0, 0, 0.3);
-  opacity: 0;
-  transition: opacity 0.3s;
+  opacity: 1;
 }
 
 .linkTooltip::before {
@@ -93,7 +92,7 @@
   content: '';
 }
 
-.linkButton:hover .linkTooltip {
-  visibility: visible;
-  opacity: 1;
+.linkTooltipHidden {
+  transition: opacity 0.2s;
+  opacity: 0;
 }
