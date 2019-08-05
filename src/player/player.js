@@ -81,8 +81,8 @@ export class GenericPlayer {
 
   onHit(angle, random, onOutOfLives) {
     this.lives -= 1;
-    if (this.lives == 1) this.hat.fly(angle, random);
-    if (this.lives == 0 && onOutOfLives) onOutOfLives();
+    if (this.lives === 1) this.hat.fly(angle, random);
+    if (this.lives === 0 && onOutOfLives) onOutOfLives();
   }
 
   update(
@@ -194,7 +194,7 @@ export default class Player extends GenericPlayer {
     }
     if (Math.abs(this.xSpeed) < 0.1) this.xSpeed = 0;
 
-    this.isTouchingGround = collisions.bottom && this.ySpeed == 0;
+    this.isTouchingGround = collisions.bottom && this.ySpeed === 0;
 
     this.ySpeed = Math.min(this.ySpeed + PLAYER_GRAVITY, PLAYER_MAX_Y_SPEED);
     if (collisions.bottom && this.ySpeed > 0) {
@@ -234,7 +234,7 @@ export default class Player extends GenericPlayer {
     );
     this.gunRecoilForce *= 0.6;
     this.gunRecoilReturn = Math.min(this.gunRecoilReturn + 0.024, 0.096);
-    if (this.armRecoilDelay == 0) {
+    if (this.armRecoilDelay === 0) {
       this.armRecoil = Math.max(
         this.armRecoil + this.armRecoilForce - this.armRecoilReturn,
         0
@@ -248,8 +248,8 @@ export default class Player extends GenericPlayer {
   }
 
   calculateMovementType(keys) {
-    if (this.xSpeed == PLAYER_MAX_X_SPEED) this.movementType = MOVING_RIGHT;
-    else if (this.xSpeed == -PLAYER_MAX_X_SPEED)
+    if (this.xSpeed === PLAYER_MAX_X_SPEED) this.movementType = MOVING_RIGHT;
+    else if (this.xSpeed === -PLAYER_MAX_X_SPEED)
       this.movementType = MOVING_LEFT;
     else if (keys.D && this.lives > 0 && this.xSpeed !== 0)
       this.movementType = ACCELERATING_RIGHT;
@@ -275,7 +275,7 @@ export default class Player extends GenericPlayer {
   }
 
   jump(collisions) {
-    if (collisions.bottom && this.ySpeed == 0) {
+    if (collisions.bottom && this.ySpeed === 0) {
       this.ySpeed = -PLAYER_JUMP_POWER;
     } else if (collisions.right && this.xSpeed > 0) {
       this.ySpeed = -PLAYER_JUMP_POWER;
@@ -290,7 +290,7 @@ export default class Player extends GenericPlayer {
     if (
       collisions.bottom &&
       !collisions.bottom.hasCollision &&
-      this.ySpeed == 0
+      this.ySpeed === 0
     )
       collisions.bottom = false;
   }
@@ -348,13 +348,14 @@ export default class Player extends GenericPlayer {
     });
     if (
       collisions.bottom &&
-      (collisions.bottom == collisions.right ||
-        collisions.bottom == collisions.left)
+      (collisions.bottom === collisions.right ||
+        collisions.bottom === collisions.left)
     )
       collisions.bottom = false;
     else if (
       collisions.top &&
-      (collisions.top == collisions.right || collisions.top == collisions.left)
+      (collisions.top === collisions.right ||
+        collisions.top === collisions.left)
     )
       collisions.top = false;
     return collisions;

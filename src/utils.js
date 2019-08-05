@@ -13,7 +13,7 @@ export function getXYfromPolar(theta, r) {
 
 export const getHostId = address => {
   const hrefArray = window.location.href.split('?');
-  if (hrefArray.length == 1) return false;
+  if (hrefArray.length === 1) return false;
   if (!hrefArray[1].includes('host=')) return false;
   return hrefArray[1].split('host=')[1];
 };

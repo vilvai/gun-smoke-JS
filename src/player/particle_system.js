@@ -19,7 +19,7 @@ export default class ParticleSystem {
     if (this.emitCounter <= 0 && movementType !== STILL && isTouchingGround) {
       const random = Math.random();
       const direction =
-        movementType === MOVING_RIGHT || movementType == ACCELERATING_RIGHT
+        movementType === MOVING_RIGHT || movementType === ACCELERATING_RIGHT
           ? 1
           : -1;
       this.particles.push({
@@ -33,7 +33,7 @@ export default class ParticleSystem {
       });
       if (
         movementType === ACCELERATING_RIGHT ||
-        movementType == ACCELERATING_LEFT
+        movementType === ACCELERATING_LEFT
       )
         this.emitCounter = EMIT_INTERVAL;
       else this.emitCounter = EMIT_INTERVAL * 4;

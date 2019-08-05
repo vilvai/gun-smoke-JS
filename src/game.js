@@ -65,7 +65,7 @@ export default class Game {
       const hostId = getHostId(window.location.href);
       const onError = alert;
 
-      if (hostId == 'DEBUG') {
+      if (hostId === 'DEBUG') {
         this.startGame();
         this.playerIsHost = true;
         this.player = new Player(180, 300);
@@ -109,107 +109,150 @@ export default class Game {
     ctx.mousedown = () => (this.mouseClicked = true);
 
     ctx.update = () => {
-      if (this.player) {
-        this.player.update(
-          ctx.keys,
-          this.platforms,
-          ctx.mouse.x,
-          ctx.mouse.y,
-          this.mouseClicked,
-          this.isGameStarted,
-          this.isGameOver,
-          this.onShoot
-        );
-
-        const {
-          x,
-          y,
-          angle,
-          gunRecoil,
-          isAimingDown,
-          movementType,
-          isTouchingGround,
-          isReadyToRematch,
-        } = this.player;
-
-        this.allPlayersDataById[this.playerId] = {
-          x,
-          y,
-          angle,
-          gunRecoil,
-          isAimingDown,
-          movementType,
-          isTouchingGround,
-          isReadyToRematch,
-        };
-      }
-
-      if (!this.isGameStarted && this.player) {
-        if (!this.player.isAimingDown)
-          this.onSetGameState({ gameState: GAME_STATE_AIM_DOWN });
-        else this.onSetGameState({ gameState: GAME_STATE_READY });
-        if (
-          Object.values(this.allPlayersDataById).every(
-            player => player.isAimingDown
-          )
-        )
-          this.countdownLeft -= 1;
-        else this.countdownLeft = COUNTDOWN;
-
-        if (this.countdownLeft == 0 && this.playerIsHost) {
-          Object.values(this.connectionsById).forEach(connection =>
-            connection.send({ type: 'startGame' })
-          );
-          this.startGame();
-        }
-      }
-      Object.entries(this.otherPlayersById).forEach(([id, otherPlayer]) =>
-        otherPlayer.update(
-          this.allPlayersDataById[id],
-          this.isGameStarted,
-          this.isGameOver
-        )
-      );
-      this.bullets.forEach(bullet =>
-        bullet.update(
-          this.onRemoveBullet,
-          this.onHitPlayer,
-          this.onHitPlatform,
-          this.player.x,
-          this.player.y,
-          this.platforms
-        )
-      );
-      this.mouseClicked = false;
-      if (
-        this.playerIsHost &&
-        this.isGameOver &&
-        !this.resetRequestSent &&
-        Object.values(this.allPlayersDataById).every(
-          player => player.isReadyToRematch
-        )
-      ) {
-        const otherPlayerId = Object.keys(this.otherPlayersById)[0];
-        this.resetRequestSent = true;
-        this.setupGame(otherPlayerId);
-        this.sendData({ type: 'rematch' });
-      }
+      this.updatePlayers(ctx.keys, ctx.mouse);
+      this.updateBullets();
+      this.checkCountdown();
+      this.checkGameOver();
       this.sendPlayerData();
+      this.mouseClicked = false;
     };
 
     ctx.draw = () => {
       this.background.draw(ctx);
-
       this.platforms.forEach(platform => platform.draw(ctx));
       this.bullets.forEach(bullet => bullet.draw(ctx));
-
       if (this.player) this.player.draw(ctx);
-
       Object.values(this.otherPlayersById).forEach(otherPlayer =>
         otherPlayer.draw(ctx)
       );
     };
   }
+
+  updatePlayers = (keys, mouse) => {
+    if (this.player) {
+      this.player.update(
+        keys,
+        this.platforms,
+        mouse.x,
+        mouse.y,
+        this.mouseClicked,
+        this.isGameStarted,
+        this.isGameOver,
+        this.onShoot
+      );
+
+      const {
+        x,
+        y,
+        angle,
+        gunRecoil,
+        isAimingDown,
+        movementType,
+        isTouchingGround,
+        isReadyToRematch,
+      } = this.player;
+
+      this.allPlayersDataById[this.playerId] = {
+        x,
+        y,
+        angle,
+        gunRecoil,
+        isAimingDown,
+        movementType,
+        isTouchingGround,
+        isReadyToRematch,
+      };
+    }
+
+    Object.entries(this.otherPlayersById).forEach(([id, otherPlayer]) =>
+      otherPlayer.update(
+        this.allPlayersDataById[id],
+        this.isGameStarted,
+        this.isGameOver
+      )
+    );
+  };
+
+  updateBullets = () =>
+    this.bullets.forEach(bullet =>
+      bullet.update(
+        this.onRemoveBullet,
+        this.onHitPlayer,
+        this.onHitPlatform,
+        this.player.x,
+        this.player.y,
+        this.platforms
+      )
+    );
+
+  checkCountdown = () => {
+    if (!this.isGameStarted && this.player) {
+      if (!this.player.isAimingDown)
+        this.onSetGameState({ gameState: GAME_STATE_AIM_DOWN });
+      else this.onSetGameState({ gameState: GAME_STATE_READY });
+      if (
+        Object.values(this.allPlayersDataById).every(
+          player => player.isAimingDown
+        )
+      )
+        this.countdownLeft -= 1;
+      else this.countdownLeft = COUNTDOWN;
+
+      if (this.countdownLeft === 0 && this.playerIsHost) {
+        Object.values(this.connectionsById).forEach(connection =>
+          connection.send({ type: 'startGame' })
+        );
+        this.startGame();
+      }
+    }
+  };
+
+  checkGameOver = () => {
+    if (
+      this.playerIsHost &&
+      this.isGameOver &&
+      !this.resetRequestSent &&
+      Object.values(this.allPlayersDataById).every(
+        player => player.isReadyToRematch
+      )
+    ) {
+      const otherPlayerId = Object.keys(this.otherPlayersById)[0];
+      this.resetRequestSent = true;
+      this.setupGame(otherPlayerId);
+      this.sendData({ type: 'rematch' });
+    }
+  };
+
+  onShoot = (x, y, angle) => {
+    const bulletId = createRandomId();
+    this.sendData({ type: 'bullet', x, y, angle, bulletId });
+    this.createBullet(x, y, angle, bulletId);
+  };
+
+  createBullet = (x, y, angle, bulletId) => {
+    this.bullets.push(new Bullet(x, y, angle, bulletId));
+  };
+
+  onRemoveBullet = bulletId => {
+    this.bullets = this.bullets.filter(bullet => bullet.id !== bulletId);
+  };
+
+  onHitPlayer = (angle, bulletId) => {
+    const random = Math.random();
+    this.player.onHit(angle, random, this.gameOver);
+    this.sendData({
+      type: 'hit',
+      angle,
+      random,
+      playerId: this.playerId,
+      bulletId,
+    });
+  };
+
+  onHitPlatform = bulletId => {
+    this.onRemoveBullet(bulletId);
+    this.sendData({ type: 'hitPlatform', bulletId });
+  };
 
   sendPlayerData = () => {
     if (this.playerIsHost) {
@@ -270,22 +313,18 @@ export default class Game {
         const otherPlayerId = Object.keys(this.otherPlayersById)[0];
         this.setupGame(otherPlayerId);
       default:
+        break;
     }
+  };
+
+  onDisconnect = () => {
+    alert('Other player disconnected!');
   };
 
   startStandoff = connection => {
     if (this.playerIsHost) this.connectionsById[connection.peer] = connection;
     else this.hostConnection = connection;
     this.setupGame(connection.peer);
-  };
-
-  gameOver = () => {
-    this.onSetGameState({
-      gameState: GAME_STATE_GAME_LOST,
-      gameStateTextFade: false,
-    });
-    this.isGameOver = true;
-    this.sendData({ type: 'gameOver' });
   };
 
   setupGame = otherPlayerId => {
@@ -315,38 +354,12 @@ export default class Game {
     );
   };
 
-  onShoot = (x, y, angle) => {
-    const bulletId = createRandomId();
-    this.sendData({ type: 'bullet', x, y, angle, bulletId });
-    this.createBullet(x, y, angle, bulletId);
-  };
-
-  createBullet = (x, y, angle, bulletId) => {
-    this.bullets.push(new Bullet(x, y, angle, bulletId));
-  };
-
-  onRemoveBullet = bulletId => {
-    this.bullets = this.bullets.filter(bullet => bullet.id !== bulletId);
-  };
-
-  onHitPlayer = (angle, bulletId) => {
-    const random = Math.random();
-    this.player.onHit(angle, random, this.gameOver);
-    this.sendData({
-      type: 'hit',
-      angle,
-      random,
-      playerId: this.playerId,
-      bulletId,
+  gameOver = () => {
+    this.onSetGameState({
+      gameState: GAME_STATE_GAME_LOST,
+      gameStateTextFade: false,
     });
-  };
-
-  onHitPlatform = bulletId => {
-    this.onRemoveBullet(bulletId);
-    this.sendData({ type: 'hitPlatform', bulletId });
-  };
-
-  onDisconnect = () => {
-    alert('Other player disconnected!');
+    this.isGameOver = true;
+    this.sendData({ type: 'gameOver' });
   };
 }

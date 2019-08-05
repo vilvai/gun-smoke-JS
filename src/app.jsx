@@ -46,7 +46,7 @@ export default class App extends Component {
       case GAME_STATE_AIM_DOWN:
         return 'Aim down';
       case GAME_STATE_READY:
-        return 'Ready...';
+        return 'Ready…';
       case GAME_STATE_GAME_STARTED:
         return 'Fire!';
       case GAME_STATE_GAME_WON:
