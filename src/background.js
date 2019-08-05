@@ -4,7 +4,7 @@ import cloudSrc from './images/cloud.png';
 import { drawImageCenter, getXYfromPolar } from './utils.js';
 
 export default class Background {
-  constructor(ctx) {
+  constructor() {
     this.night = new Image();
     this.night.src = backgroundSrc;
     this.cloud = new Image();
@@ -53,7 +53,7 @@ export default class Background {
     drawImageCenter(this.cloud, this.cloudX, this.cloudY, 212, 42, ctx);
   }
 
-  //DayCycle()
+  // DayCycle()
 
-  //Wind()
+  // Wind()
 }

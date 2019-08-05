@@ -1,14 +1,16 @@
 import Sketch from './lib/sketch.js';
 
-import { GAME_WIDTH, GAME_HEIGHT, COUNTDOWN } from './constants.js';
 import {
+  GAME_WIDTH,
+  GAME_HEIGHT,
+  COUNTDOWN,
   GAME_STATE_LINK,
   GAME_STATE_AIM_DOWN,
   GAME_STATE_READY,
   GAME_STATE_GAME_STARTED,
   GAME_STATE_GAME_WON,
   GAME_STATE_GAME_LOST,
-} from './app.jsx';
+} from './constants.js';
 
 import Player, { GenericPlayer } from './player/player.js';
 import Platform from './platform.js';
@@ -22,13 +24,13 @@ export default class Game {
   constructor(container, onSetGameState) {
     this.onSetGameState = onSetGameState;
 
-    this.player;
-    this.playerId;
+    this.player = null;
+    this.playerId = null;
     this.otherPlayersById = {};
     this.allPlayersDataById = {};
     this.playerIsHost = false;
     this.connectionsById = {};
-    this.hostConnection;
+    this.hostConnection = null;
     this.resetRequestSent = false;
 
     this.mouseClicked = false;
@@ -69,7 +71,6 @@ export default class Game {
         this.startGame();
         this.playerIsHost = true;
         this.player = new Player(180, 300);
-        return;
       } else if (!hostId) {
         this.playerIsHost = true;
 
@@ -77,7 +78,7 @@ export default class Game {
           this.playerId = peer.id;
           this.onSetGameState({
             gameState: GAME_STATE_LINK,
-            linkText: window.location.href + '?host=' + peer.id,
+            linkText: `${window.location.href}?host=${peer.id}`,
           });
 
           peer.on('connection', connection => {
@@ -123,8 +124,7 @@ export default class Game {
       this.bullets.forEach(bullet => bullet.draw(ctx));
       if (this.player) this.player.draw(ctx);
       Object.values(this.otherPlayersById).forEach(otherPlayer =>
-        otherPlayer.draw(ctx)
-      );
+        otherPlayer.draw(ctx));
     };
   }
 
@@ -169,8 +169,7 @@ export default class Game {
         this.allPlayersDataById[id],
         this.isGameStarted,
         this.isGameOver
-      )
-    );
+      ));
   };
 
   updateBullets = () =>
@@ -182,26 +181,25 @@ export default class Game {
         this.player.x,
         this.player.y,
         this.platforms
-      )
-    );
+      ));
 
   checkCountdown = () => {
     if (!this.isGameStarted && this.player) {
-      if (!this.player.isAimingDown)
+      if (!this.player.isAimingDown) {
         this.onSetGameState({ gameState: GAME_STATE_AIM_DOWN });
-      else this.onSetGameState({ gameState: GAME_STATE_READY });
+      } else {
+        this.onSetGameState({ gameState: GAME_STATE_READY });
+      }
       if (
         Object.values(this.allPlayersDataById).every(
           player => player.isAimingDown
         )
-      )
-        this.countdownLeft -= 1;
+      ) this.countdownLeft -= 1;
       else this.countdownLeft = COUNTDOWN;
 
       if (this.countdownLeft === 0 && this.playerIsHost) {
         Object.values(this.connectionsById).forEach(connection =>
-          connection.send({ type: 'startGame' })
-        );
+          connection.send({ type: 'startGame' }));
         this.startGame();
       }
     }
@@ -209,10 +207,10 @@ export default class Game {
 
   checkGameOver = () => {
     if (
-      this.playerIsHost &&
-      this.isGameOver &&
-      !this.resetRequestSent &&
-      Object.values(this.allPlayersDataById).every(
+      this.playerIsHost
+      && this.isGameOver
+      && !this.resetRequestSent
+      && Object.values(this.allPlayersDataById).every(
         player => player.isReadyToRematch
       )
     ) {
@@ -225,7 +223,13 @@ export default class Game {
 
   onShoot = (x, y, angle) => {
     const bulletId = createRandomId();
-    this.sendData({ type: 'bullet', x, y, angle, bulletId });
+    this.sendData({
+      type: 'bullet',
+      x,
+      y,
+      angle,
+      bulletId,
+    });
     this.createBullet(x, y, angle, bulletId);
   };
 
@@ -260,25 +264,22 @@ export default class Game {
         connection.send({
           type: 'players',
           players: this.allPlayersDataById,
-        })
-      );
-    } else {
-      this.hostConnection &&
-        this.hostConnection.send({
-          type: 'players',
-          players: {
-            [this.playerId]: this.allPlayersDataById[this.playerId],
-          },
-        });
+        }));
+    } else if (this.hostConnection) {
+      this.hostConnection.send({
+        type: 'players',
+        players: {
+          [this.playerId]: this.allPlayersDataById[this.playerId],
+        },
+      });
     }
   };
 
   sendData = data => {
-    if (this.playerIsHost)
+    if (this.playerIsHost) {
       Object.values(this.connectionsById).forEach(connection =>
-        connection.send(data)
-      );
-    else this.hostConnection.send(data);
+        connection.send(data));
+    } else this.hostConnection.send(data);
   };
 
   onReceiveData = data => {
@@ -312,6 +313,7 @@ export default class Game {
       case 'rematch':
         const otherPlayerId = Object.keys(this.otherPlayersById)[0];
         this.setupGame(otherPlayerId);
+        break;
       default:
         break;
     }

@@ -27,3 +27,11 @@ export const HAT_WIDTH = 70;
 export const HAT_HEIGHT = 20;
 
 export const COUNTDOWN = 100;
+
+export const GAME_STATE_LOADING = 'LOADING';
+export const GAME_STATE_LINK = 'LINK';
+export const GAME_STATE_AIM_DOWN = 'AIM_DOWN';
+export const GAME_STATE_READY = 'READY';
+export const GAME_STATE_GAME_STARTED = 'GAME_STARTED';
+export const GAME_STATE_GAME_WON = 'GAME_WON';
+export const GAME_STATE_GAME_LOST = 'GAME_LOST';

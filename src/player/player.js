@@ -9,8 +9,6 @@ import {
   PLAYER_GRAVITY,
   PLAYER_ARM_LENGTH,
   PLAYER_ARM_WIDTH,
-  HAT_WIDTH,
-  HAT_HEIGHT,
   GUN_SIZE,
   GUN_POSITION_OFFSET_X,
   GUN_POSITION_OFFSET_Y,
@@ -64,18 +62,18 @@ export class GenericPlayer {
   getGunBarrelX() {
     const direction = this.angle > Math.PI / 2 ? -1 : 1;
     return (
-      this.getArmEndX() +
-      Math.cos(this.angle) * ((100 - 2 + GUN_POSITION_OFFSET_X) * GUN_SIZE) -
-      Math.sin(this.angle) * GUN_POSITION_OFFSET_Y * GUN_SIZE * direction
+      this.getArmEndX()
+      + Math.cos(this.angle) * ((100 - 2 + GUN_POSITION_OFFSET_X) * GUN_SIZE)
+      - Math.sin(this.angle) * GUN_POSITION_OFFSET_Y * GUN_SIZE * direction
     );
   }
 
   getGunBarrelY() {
     const direction = this.angle > Math.PI / 2 ? -1 : 1;
     return (
-      this.getArmEndY() +
-      Math.sin(this.angle) * ((100 - 2 + GUN_POSITION_OFFSET_X) * GUN_SIZE) +
-      Math.cos(this.angle) * GUN_POSITION_OFFSET_Y * GUN_SIZE * direction
+      this.getArmEndY()
+      + Math.sin(this.angle) * ((100 - 2 + GUN_POSITION_OFFSET_X) * GUN_SIZE)
+      + Math.cos(this.angle) * GUN_POSITION_OFFSET_Y * GUN_SIZE * direction
     );
   }
 
@@ -116,8 +114,9 @@ export class GenericPlayer {
       this.isTouchingGround,
       this.movementType
     );
-    if (!isGameStarted)
+    if (!isGameStarted) {
       this.isAimingDown = this.angle > 1.2 && this.angle < 1.94;
+    }
     this.marker.update(
       this.isAimingDown,
       this.isReadyToRematch,
@@ -192,6 +191,7 @@ export default class Player extends GenericPlayer {
         this.xSpeed *= 1 - PLAYER_DRAG / 8;
       }
     }
+
     if (Math.abs(this.xSpeed) < 0.1) this.xSpeed = 0;
 
     this.isTouchingGround = collisions.bottom && this.ySpeed === 0;
@@ -241,21 +241,26 @@ export default class Player extends GenericPlayer {
       );
       this.armRecoilReturn = Math.min(this.armRecoilReturn + 0.02, 0.1);
       this.armRecoilForce *= 0.75;
-    } else this.armRecoilDelay -= 1;
+    } else {
+      this.armRecoilDelay -= 1;
+    }
 
     if (this.angle > Math.PI / 2) this.angle += this.armRecoil * 0.5;
     else this.angle -= this.armRecoil * 0.5;
   }
 
   calculateMovementType(keys) {
-    if (this.xSpeed === PLAYER_MAX_X_SPEED) this.movementType = MOVING_RIGHT;
-    else if (this.xSpeed === -PLAYER_MAX_X_SPEED)
+    if (this.xSpeed === PLAYER_MAX_X_SPEED) {
+      this.movementType = MOVING_RIGHT;
+    } else if (this.xSpeed === -PLAYER_MAX_X_SPEED) {
       this.movementType = MOVING_LEFT;
-    else if (keys.D && this.lives > 0 && this.xSpeed !== 0)
+    } else if (keys.D && this.lives > 0 && this.xSpeed !== 0) {
       this.movementType = ACCELERATING_RIGHT;
-    else if (keys.A && this.lives > 0 && this.xSpeed !== 0)
+    } else if (keys.A && this.lives > 0 && this.xSpeed !== 0) {
       this.movementType = ACCELERATING_LEFT;
-    else this.movementType = STILL;
+    } else {
+      this.movementType = STILL;
+    }
   }
 
   moveRight(collisions) {
@@ -288,11 +293,10 @@ export default class Player extends GenericPlayer {
 
   drop(collisions) {
     if (
-      collisions.bottom &&
-      !collisions.bottom.hasCollision &&
-      this.ySpeed === 0
-    )
-      collisions.bottom = false;
+      collisions.bottom
+      && !collisions.bottom.hasCollision
+      && this.ySpeed === 0
+    ) collisions.bottom = false;
   }
 
   shoot(onShoot) {
@@ -310,54 +314,57 @@ export default class Player extends GenericPlayer {
     const top = this.y;
     const left = this.x;
     const right = this.x + PLAYER_WIDTH;
-    const collisions = { bottom: false, top: false, right: false, left: false };
+    const collisions = {
+      bottom: false,
+      top: false,
+      right: false,
+      left: false,
+    };
 
     platforms.forEach(platform => {
       if (
-        platform.x < right &&
-        left < platform.x + platform.width &&
-        platform.y <= bottom + this.ySpeed &&
-        bottom + this.ySpeed <= platform.y + platform.height &&
-        platform.y >= bottom
-      )
-        collisions.bottom = platform;
+        platform.x < right
+        && left < platform.x + platform.width
+        && platform.y <= bottom + this.ySpeed
+        && bottom + this.ySpeed <= platform.y + platform.height
+        && platform.y >= bottom
+      ) collisions.bottom = platform;
+
       if (
-        platform.x < right &&
-        left < platform.x + platform.width &&
-        top + this.ySpeed <= platform.y + platform.height &&
-        platform.y <= top + this.ySpeed &&
-        platform.hasCollision
-      )
-        collisions.top = platform;
+        platform.x < right
+        && left < platform.x + platform.width
+        && top + this.ySpeed <= platform.y + platform.height
+        && platform.y <= top + this.ySpeed
+        && platform.hasCollision
+      ) collisions.top = platform;
+
       if (
-        platform.x <= right + this.xSpeed &&
-        right + this.xSpeed <= platform.x + platform.width &&
-        platform.y < bottom &&
-        top < platform.y + platform.height &&
-        platform.hasCollision
-      )
-        collisions.right = platform;
+        platform.x <= right + this.xSpeed
+        && right + this.xSpeed <= platform.x + platform.width
+        && platform.y < bottom
+        && top < platform.y + platform.height
+        && platform.hasCollision
+      ) collisions.right = platform;
+
       if (
-        platform.x <= left + this.xSpeed &&
-        left + this.xSpeed <= platform.x + platform.width &&
-        platform.y < bottom &&
-        top < platform.y + platform.height &&
-        platform.hasCollision
-      )
-        collisions.left = platform;
+        platform.x <= left + this.xSpeed
+        && left + this.xSpeed <= platform.x + platform.width
+        && platform.y < bottom
+        && top < platform.y + platform.height
+        && platform.hasCollision
+      ) collisions.left = platform;
     });
     if (
-      collisions.bottom &&
-      (collisions.bottom === collisions.right ||
-        collisions.bottom === collisions.left)
-    )
-      collisions.bottom = false;
+      collisions.bottom
+      && (collisions.bottom === collisions.right
+        || collisions.bottom === collisions.left)
+    ) collisions.bottom = false;
     else if (
-      collisions.top &&
-      (collisions.top === collisions.right ||
-        collisions.top === collisions.left)
-    )
-      collisions.top = false;
+      collisions.top
+      && (collisions.top === collisions.right
+        || collisions.top === collisions.left)
+    ) collisions.top = false;
+
     return collisions;
   }
 }

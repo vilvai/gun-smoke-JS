@@ -1,6 +1,6 @@
 import Peer from 'peerjs';
 
-export const setupPeer = onReceiveData =>
+export const setupPeer = () =>
   new Promise((resolve, reject) => {
     const peer = new Peer({
       host: 'gunsmok.herokuapp.com',
@@ -12,9 +12,9 @@ export const setupPeer = onReceiveData =>
   });
 
 export const connectToHost = (peer, hostId, onReceiveData, onDisconnect) =>
-  new Promise((resolve, reject) => {
+  new Promise(resolve => {
     const connection = peer.connect(hostId);
-    connection.on('open', function() {
+    connection.on('open', () => {
       peer.disconnect();
       resolve(connection);
     });
@@ -23,4 +23,4 @@ export const connectToHost = (peer, hostId, onReceiveData, onDisconnect) =>
     connection.on('disconnect', onDisconnect);
   });
 
-//heroku.com/deploy/?template=https://github.com/peers/peerjs-server
+// heroku.com/deploy/?template=https://github.com/peers/peerjs-server

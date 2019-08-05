@@ -1,9 +1,4 @@
-import {
-  PLAYER_WIDTH,
-  PLAYER_HEIGHT,
-  HAT_WIDTH,
-  HAT_HEIGHT,
-} from '../constants.js';
+import { PLAYER_WIDTH, HAT_WIDTH, HAT_HEIGHT } from '../constants.js';
 
 export default class Hat {
   constructor(x, y) {

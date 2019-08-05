@@ -12,11 +12,6 @@ const gunImage = new Image();
 gunImage.src = gunSrc;
 
 export default class Gun {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
-  }
-
   draw(context, armEndX, armEndY, angle, gunRecoil) {
     context.translate(armEndX, armEndY);
     if (angle > Math.PI / 2) {

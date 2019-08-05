@@ -3,17 +3,19 @@ import cx from 'classnames';
 
 import Overlay from './overlay.jsx';
 import Game from './game.js';
-import { GAME_WIDTH, GAME_HEIGHT } from './constants.js';
+import {
+  GAME_WIDTH,
+  GAME_HEIGHT,
+  GAME_STATE_LOADING,
+  GAME_STATE_LINK,
+  GAME_STATE_AIM_DOWN,
+  GAME_STATE_READY,
+  GAME_STATE_GAME_STARTED,
+  GAME_STATE_GAME_WON,
+  GAME_STATE_GAME_LOST,
+} from './constants.js';
 
 import styles from './styles/app.module.css';
-
-export const GAME_STATE_LOADING = 'LOADING';
-export const GAME_STATE_LINK = 'LINK';
-export const GAME_STATE_AIM_DOWN = 'AIM_DOWN';
-export const GAME_STATE_READY = 'READY';
-export const GAME_STATE_GAME_STARTED = 'GAME_STARTED';
-export const GAME_STATE_GAME_WON = 'GAME_WON';
-export const GAME_STATE_GAME_LOST = 'GAME_LOST';
 
 export default class App extends Component {
   state = {
@@ -26,15 +28,16 @@ export default class App extends Component {
   };
 
   componentDidMount() {
-    new Game(this.sketchContainer, this.handleSetState);
+    this.game = new Game(this.sketchContainer, this.handleSetState);
   }
 
   componentDidUpdate(prevProps, prevState) {
     if (prevState.gameState !== this.state.gameState) {
-      if (this.state.gameState === GAME_STATE_GAME_WON)
+      if (this.state.gameState === GAME_STATE_GAME_WON) {
         this.setState({ ownScore: this.state.ownScore + 1 });
-      else if (this.state.gameState === GAME_STATE_GAME_LOST)
+      } else if (this.state.gameState === GAME_STATE_GAME_LOST) {
         this.setState({ opponentScore: this.state.opponentScore + 1 });
+      }
     }
   }
 
@@ -65,24 +68,24 @@ export default class App extends Component {
       opponentScore,
       scorePositionsReversed,
     } = this.state;
-    if (gameState === GAME_STATE_LOADING || gameState === GAME_STATE_LINK)
+    if (gameState === GAME_STATE_LOADING || gameState === GAME_STATE_LINK) {
       return null;
-    else
-      return (
-        <div
-          style={{
-            width: GAME_WIDTH,
-            top: `calc(50% - ${GAME_HEIGHT / 2}px)`,
-            left: `calc(50% - ${GAME_WIDTH / 2}px)`,
-          }}
-          className={cx(styles.scoreContainer, {
-            [styles.scoreReversed]: scorePositionsReversed,
-          })}
-        >
-          <span>{ownScore}</span>
-          <span>{opponentScore}</span>
-        </div>
-      );
+    }
+    return (
+      <div
+        style={{
+          width: GAME_WIDTH,
+          top: `calc(50% - ${GAME_HEIGHT / 2}px)`,
+          left: `calc(50% - ${GAME_WIDTH / 2}px)`,
+        }}
+        className={cx(styles.scoreContainer, {
+          [styles.scoreReversed]: scorePositionsReversed,
+        })}
+      >
+        <span>{ownScore}</span>
+        <span>{opponentScore}</span>
+      </div>
+    );
   }
 
   render() {

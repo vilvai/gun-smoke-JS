@@ -4,7 +4,6 @@ import {
   ACCELERATING_RIGHT,
   ACCELERATING_LEFT,
   MOVING_RIGHT,
-  MOVING_LEFT,
 } from './movement_states.js';
 
 const EMIT_INTERVAL = 3;
@@ -18,30 +17,39 @@ export default class ParticleSystem {
   update(playerX, playerY, isTouchingGround, movementType) {
     if (this.emitCounter <= 0 && movementType !== STILL && isTouchingGround) {
       const random = Math.random();
-      const direction =
-        movementType === MOVING_RIGHT || movementType === ACCELERATING_RIGHT
-          ? 1
-          : -1;
+      let direction;
+      if (
+        movementType === MOVING_RIGHT
+        || movementType === ACCELERATING_RIGHT
+      ) {
+        direction = 1;
+      } else {
+        direction = -1;
+      }
       this.particles.push({
         random,
         startX:
-          playerX +
-          (direction === -1 ? PLAYER_WIDTH - random * 20 : random * 20),
+          playerX
+          + (direction === -1 ? PLAYER_WIDTH - random * 20 : random * 20),
         startY: playerY + PLAYER_HEIGHT,
         direction,
         time: 1,
       });
       if (
-        movementType === ACCELERATING_RIGHT ||
-        movementType === ACCELERATING_LEFT
-      )
+        movementType === ACCELERATING_RIGHT
+        || movementType === ACCELERATING_LEFT
+      ) {
         this.emitCounter = EMIT_INTERVAL;
-      else this.emitCounter = EMIT_INTERVAL * 4;
+      } else {
+        this.emitCounter = EMIT_INTERVAL * 4;
+      }
     }
-    if (this.particles.length > 0)
+    if (this.particles.length > 0) {
       this.particles = this.particles
         .map(particle => {
-          const { startX, startY, time, direction, random } = particle;
+          const {
+            startX, startY, time, direction, random,
+          } = particle;
           return {
             startX,
             startY,
@@ -55,10 +63,11 @@ export default class ParticleSystem {
           };
         })
         .filter(particle => particle.alpha >= 0.01);
+    }
     this.emitCounter -= 1;
   }
 
-  draw(context, player) {
+  draw(context) {
     this.particles.forEach(particle => {
       context.fillStyle = '#bd9268';
       context.globalAlpha = particle.alpha;

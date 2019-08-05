@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import cx from 'classnames';
 
-import { GAME_STATE_LOADING, GAME_STATE_LINK } from './app.jsx';
+import { GAME_STATE_LOADING, GAME_STATE_LINK } from './constants.js';
 
 import styles from './styles/overlay.module.css';
 
@@ -42,6 +42,7 @@ export default class Overlay extends Component {
                   className={styles.linkButton}
                   onClick={this.handleCopy}
                   onMouseOut={this.handleMouseout}
+                  type="button"
                 >
                   Copy
                   <div
