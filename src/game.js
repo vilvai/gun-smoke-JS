@@ -138,7 +138,9 @@ export default class Game {
         this.mouseClicked,
         this.isGameStarted,
         this.isGameOver,
-        this.onShoot
+        this.onShoot,
+        this.onJump,
+        this.onLand
       );
 
       const {
@@ -221,6 +223,23 @@ export default class Game {
     }
   };
 
+  onJump = (playerX, playerY) =>
+    this.sendData({
+      type: 'jump',
+      playerId: this.playerId,
+      playerX,
+      playerY,
+    });
+
+  onLand = (playerX, playerY, ySpeed) =>
+    this.sendData({
+      type: 'land',
+      playerId: this.playerId,
+      playerX,
+      playerY,
+      ySpeed,
+    });
+
   onShoot = (x, y, angle) => {
     const bulletId = createRandomId();
     this.sendData({
@@ -285,35 +304,58 @@ export default class Game {
   onReceiveData = data => {
     if (!data.type) return;
     switch (data.type) {
-      case 'players':
+      case 'players': {
         Object.entries(data.players).forEach(
           ([id, playerData]) => (this.allPlayersDataById[id] = playerData)
         );
         break;
-      case 'bullet':
+      }
+      case 'bullet': {
         this.createBullet(data.x, data.y, data.angle, data.bulletId);
         break;
-      case 'startGame':
+      }
+      case 'startGame': {
         this.startGame();
         break;
-      case 'hit':
+      }
+      case 'hit': {
         this.onRemoveBullet(data.bulletId);
         this.otherPlayersById[data.playerId].onHit(data.angle, data.random);
         break;
-      case 'hitPlatform':
+      }
+      case 'hitPlatform': {
         this.onRemoveBullet(data.bulletId);
         break;
-      case 'gameOver':
+      }
+      case 'gameOver': {
         this.onSetGameState({
           gameState: GAME_STATE_GAME_WON,
           gameStateTextFade: false,
         });
         this.isGameOver = true;
         break;
-      case 'rematch':
+      }
+      case 'rematch': {
         const otherPlayerId = Object.keys(this.otherPlayersById)[0];
         this.setupGame(otherPlayerId);
         break;
+      }
+      case 'jump': {
+        const { playerId, playerX, playerY } = data;
+        this.otherPlayersById[playerId].createJumpParticles(playerX, playerY);
+        break;
+      }
+      case 'land': {
+        const {
+          playerId, playerX, playerY, ySpeed,
+        } = data;
+        this.otherPlayersById[playerId].createLandParticles(
+          playerX,
+          playerY,
+          ySpeed
+        );
+        break;
+      }
       default:
         break;
     }

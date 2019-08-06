@@ -19,7 +19,7 @@ module.exports = {
   plugins: ['react'],
   rules: {
     'arrow-parens': ['error', 'as-needed'],
-    'linebreak-style': 'off',
+    'linebreak-style': 0,
     'max-len': [
       'error',
       {
@@ -47,7 +47,6 @@ module.exports = {
     'react/no-did-update-set-state': 0,
     'function-paren-newline': ['error', 'consistent'],
     'no-unused-expressions': ['error', { allowShortCircuit: true }],
-    'no-case-declarations': 0,
     'class-methods-use-this': 0,
     'no-plusplus': ['error', { allowForLoopAfterthoughts: true }],
     'jsx-a11y/mouse-events-have-key-events': 0,

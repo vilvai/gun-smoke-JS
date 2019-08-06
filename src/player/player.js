@@ -125,6 +125,14 @@ export class GenericPlayer {
     );
   }
 
+  createJumpParticles(playerX, playerY) {
+    this.particleSystem.createJumpParticles(playerX, playerY);
+  }
+
+  createLandParticles(playerX, playerY, ySpeed) {
+    this.particleSystem.createLandParticles(playerX, playerY, ySpeed);
+  }
+
   draw(context) {
     const playerColor = this.lives > 0 ? '#000' : '#630c0c';
     context.fillStyle = playerColor;
@@ -172,13 +180,15 @@ export default class Player extends GenericPlayer {
     mouseClicked,
     isGameStarted,
     isGameOver,
-    onShoot
+    onShoot,
+    onJump,
+    onLand
   ) {
     const collisions = this.calculateCollisions(platforms);
     if (isGameStarted && this.lives > 0) {
       if (keys.D) this.moveRight(collisions);
       else if (keys.A) this.moveLeft(collisions);
-      if (keys.W) this.jump(collisions);
+      if (keys.W) this.jump(collisions, onJump);
       else if (keys.S) this.drop(collisions);
       if (mouseClicked && this.gunCooldown <= 0) this.shoot(onShoot);
     }
@@ -199,6 +209,10 @@ export default class Player extends GenericPlayer {
     this.ySpeed = Math.min(this.ySpeed + PLAYER_GRAVITY, PLAYER_MAX_Y_SPEED);
     if (collisions.bottom && this.ySpeed > 0) {
       this.y = collisions.bottom.y - PLAYER_HEIGHT;
+      if (this.ySpeed > 5 && !keys.W) {
+        onLand(this.x, this.y, this.ySpeed);
+        this.createLandParticles(this.x, this.y, this.ySpeed);
+      }
       this.ySpeed = 0;
     }
     if (collisions.top && this.ySpeed < 0) {
@@ -279,9 +293,11 @@ export default class Player extends GenericPlayer {
     );
   }
 
-  jump(collisions) {
+  jump(collisions, onJump) {
     if (collisions.bottom && this.ySpeed === 0) {
       this.ySpeed = -PLAYER_JUMP_POWER;
+      onJump(this.x, this.y);
+      this.createJumpParticles(this.x, this.y);
     } else if (collisions.right && this.xSpeed > 0) {
       this.ySpeed = -PLAYER_JUMP_POWER;
       this.xSpeed = -PLAYER_MAX_X_SPEED;

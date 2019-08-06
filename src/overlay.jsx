@@ -18,6 +18,8 @@ export default class Overlay extends Component {
     this.setState({ tooltipVisible: true });
   };
 
+  handleMouseOver = () => this.inputElement && this.inputElement.select();
+
   handleMouseout = () => this.setState({ tooltipVisible: false });
 
   render() {
@@ -35,8 +37,9 @@ export default class Overlay extends Component {
                 <input
                   ref={inputElement => (this.inputElement = inputElement)}
                   className={styles.linkText}
-                  readOnly
                   value={linkText}
+                  onMouseOver={this.handleMouseOver}
+                  readOnly
                 />
                 <button
                   className={styles.linkButton}
