@@ -122,9 +122,9 @@ export default class Game {
       this.background.draw(ctx);
       this.platforms.forEach(platform => platform.draw(ctx));
       this.bullets.forEach(bullet => bullet.draw(ctx));
-      if (this.player) this.player.draw(ctx);
+      if (this.player) this.player.draw(ctx, this.isGameStarted);
       Object.values(this.otherPlayersById).forEach(otherPlayer =>
-        otherPlayer.draw(ctx));
+        otherPlayer.draw(ctx, this.isGameStarted));
     };
   }
 

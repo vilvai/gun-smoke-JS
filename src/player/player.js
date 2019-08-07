@@ -133,7 +133,7 @@ export class GenericPlayer {
     this.particleSystem.createLandParticles(playerX, playerY, ySpeed);
   }
 
-  draw(context) {
+  draw(context, isGameStarted) {
     const playerColor = this.lives > 0 ? '#000' : '#630c0c';
     context.fillStyle = playerColor;
     context.fillRect(this.x, this.y, PLAYER_WIDTH, PLAYER_HEIGHT);
@@ -150,7 +150,18 @@ export class GenericPlayer {
       context.lineTo(armEndX, armEndY);
       context.stroke();
 
-      this.gun.draw(context, armEndX, armEndY, this.angle, this.gunRecoil);
+      const isGunHolstered = !isGameStarted && this.isAimingDown;
+
+      this.gun.draw(
+        context,
+        armEndX,
+        armEndY,
+        this.angle,
+        this.gunRecoil,
+        isGunHolstered,
+        this.x,
+        this.y
+      );
     }
 
     this.particleSystem.draw(context);
