@@ -140,7 +140,8 @@ export default class Game {
         this.isGameOver,
         this.onShoot,
         this.onJump,
-        this.onLand
+        this.onLand,
+        this.onReload
       );
 
       const {
@@ -238,6 +239,12 @@ export default class Game {
       playerX,
       playerY,
       ySpeed,
+    });
+
+  onReload = () =>
+    this.sendData({
+      type: 'reload',
+      playerId: this.playerId,
     });
 
   onShoot = (x, y, angle) => {
@@ -354,6 +361,11 @@ export default class Game {
           playerY,
           ySpeed
         );
+        break;
+      }
+      case 'reload': {
+        const { playerId } = data;
+        this.otherPlayersById[playerId].reload();
         break;
       }
       default:

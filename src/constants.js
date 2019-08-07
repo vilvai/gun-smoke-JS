@@ -19,6 +19,8 @@ export const GUN_POSITION_OFFSET_X = -30;
 export const GUN_POSITION_OFFSET_Y = -25;
 export const GUN_RECOIL_CENTER_OFFSET_X = -12;
 export const GUN_RECOIL_CENTER_OFFSET_Y = 5;
+export const GUN_BULLETS = 6;
+export const GUN_RELOAD_TIME = 120;
 
 export const BULLET_SPEED = 25;
 export const BULLET_DROP = 0.1;

@@ -13,6 +13,8 @@ import {
   GUN_POSITION_OFFSET_X,
   GUN_POSITION_OFFSET_Y,
   PLAYER_SHOOT_COOLDOWN,
+  GUN_BULLETS,
+  GUN_RELOAD_TIME,
 } from '../constants.js';
 import {
   STILL,
@@ -41,6 +43,9 @@ export class GenericPlayer {
     this.isTouchingGround = false;
     this.isAimingDown = false;
     this.isReadyToRematch = false;
+    this.isReloading = false;
+    this.reloadTimeLeft = 0;
+    this.bulletsLeft = GUN_BULLETS;
   }
 
   getArmStartX() {
@@ -83,6 +88,11 @@ export class GenericPlayer {
     if (this.lives === 0 && onOutOfLives) onOutOfLives();
   }
 
+  reload() {
+    this.isReloading = true;
+    this.reloadTimeLeft = GUN_RELOAD_TIME;
+  }
+
   update(
     {
       x,
@@ -107,6 +117,13 @@ export class GenericPlayer {
   }
 
   genericUpdate(isGameStarted, isGameOver) {
+    if (this.isReloading) {
+      this.reloadTimeLeft -= 1;
+      if (this.isReloading && this.reloadTimeLeft === 0) {
+        this.isReloading = false;
+        this.bulletsLeft = GUN_BULLETS;
+      }
+    }
     this.hat.update(this.x, this.y);
     this.particleSystem.update(
       this.x,
@@ -135,27 +152,28 @@ export class GenericPlayer {
 
   draw(context, isGameStarted) {
     const playerColor = this.lives > 0 ? '#000' : '#630c0c';
+    const reloadProgress = 1 - this.reloadTimeLeft / GUN_RELOAD_TIME;
     context.fillStyle = playerColor;
     context.fillRect(this.x, this.y, PLAYER_WIDTH, PLAYER_HEIGHT);
     this.hat.draw(context);
 
     if (this.angle) {
-      const armEndX = this.getArmEndX();
-      const armEndY = this.getArmEndY();
+      if (this.isReloading) {
+        const {
+          angleWithAnimation,
+          gunAngleWithAnimation,
+        } = this.calculateReloadAnimation(reloadProgress);
+        this.angle = angleWithAnimation;
+        this.gunRecoil = gunAngleWithAnimation;
+      }
 
-      context.lineWidth = PLAYER_ARM_WIDTH;
-      context.strokeStyle = playerColor;
-      context.beginPath();
-      context.moveTo(this.getArmStartX(), this.getArmStartY());
-      context.lineTo(armEndX, armEndY);
-      context.stroke();
+      this.drawArm(context, playerColor);
 
       const isGunHolstered = !isGameStarted && this.isAimingDown;
-
       this.gun.draw(
         context,
-        armEndX,
-        armEndY,
+        this.getArmEndX(),
+        this.getArmEndY(),
         this.angle,
         this.gunRecoil,
         isGunHolstered,
@@ -163,9 +181,71 @@ export class GenericPlayer {
         this.y
       );
     }
-
+    if (this.isReloading) this.drawReloadMarker(context, reloadProgress);
     this.particleSystem.draw(context);
     this.marker.draw(context, this.x, this.y);
+  }
+
+  calculateReloadAnimation(reloadProgress) {
+    let angleWithAnimation = 0;
+    let gunAngleWithAnimation = 0;
+    const reloadStartAnimationPercent = 0.05;
+    const reloadFinishAnimationPercent = 0.8;
+    let loweredAngle;
+    if (this.angle < Math.PI / 2) {
+      loweredAngle = (this.angle - Math.PI / 2) / 2 + Math.PI / 2;
+    } else {
+      loweredAngle = (this.angle + Math.PI / 2) / 2;
+    }
+
+    if (reloadProgress < reloadStartAnimationPercent) {
+      const animationProgress = reloadProgress / reloadStartAnimationPercent;
+      gunAngleWithAnimation = -animationProgress * (Math.PI / 4);
+      // prettier-ignore
+      angleWithAnimation = animationProgress * loweredAngle
+        + (1 - animationProgress) * this.angle;
+    } else if (reloadProgress < reloadFinishAnimationPercent) {
+      gunAngleWithAnimation = -Math.PI / 4;
+      angleWithAnimation = loweredAngle;
+    } else {
+      const animationProgress = (reloadProgress - reloadFinishAnimationPercent)
+        / (1 - reloadFinishAnimationPercent);
+      // prettier-ignore
+      gunAngleWithAnimation = (-(animationProgress * 3.75) + 15 / 4) * Math.PI;
+      // prettier-ignore
+      angleWithAnimation = Math.min(animationProgress * 3, 1) * this.angle
+        + (1 - Math.min(animationProgress * 3, 1)) * loweredAngle;
+    }
+    return { angleWithAnimation, gunAngleWithAnimation };
+  }
+
+  drawArm(context, playerColor) {
+    context.lineWidth = PLAYER_ARM_WIDTH;
+    context.strokeStyle = playerColor;
+    context.beginPath();
+    context.moveTo(this.getArmStartX(), this.getArmStartY());
+    context.lineTo(this.getArmEndX(), this.getArmEndY());
+    context.stroke();
+  }
+
+  drawReloadMarker(context, reloadProgress) {
+    const reloadMarkerWidth = 70;
+    const reloadMarkerHeight = 10;
+    const reloadMarkerY = 6;
+    context.fillStyle = '#e0e0e0';
+    context.fillRect(
+      this.x + PLAYER_WIDTH / 2 - reloadMarkerWidth / 2,
+      this.y - reloadMarkerHeight - reloadMarkerY,
+      reloadMarkerWidth,
+      reloadMarkerHeight
+    );
+    context.fillStyle = '#707070';
+    context.fillRect(
+      this.x + PLAYER_WIDTH / 2 - reloadMarkerWidth / 2,
+      this.y - reloadMarkerHeight - reloadMarkerY,
+      reloadMarkerWidth * reloadProgress,
+      reloadMarkerHeight
+    );
   }
 }
 
@@ -193,7 +273,8 @@ export default class Player extends GenericPlayer {
     isGameOver,
     onShoot,
     onJump,
-    onLand
+    onLand,
+    onReload
   ) {
     const collisions = this.calculateCollisions(platforms);
     if (isGameStarted && this.lives > 0) {
@@ -201,9 +282,27 @@ export default class Player extends GenericPlayer {
       else if (keys.A) this.moveLeft(collisions);
       if (keys.W) this.jump(collisions, onJump);
       else if (keys.S) this.drop(collisions);
-      if (mouseClicked && this.gunCooldown <= 0) this.shoot(onShoot);
+      if (mouseClicked && this.gunCooldown <= 0 && !this.isReloading) {
+        this.shoot(onShoot);
+      }
+      if (keys.R && !this.isReloading && this.bulletsLeft !== GUN_BULLETS) {
+        this.reload();
+        onReload();
+      }
     }
     if (isGameOver && keys.ENTER) this.isReadyToRematch = true;
+    this.isTouchingGround = collisions.bottom && this.ySpeed === 0;
+
+    this.calculateSlowdown(collisions, keys, onLand);
+    this.y += this.ySpeed;
+    this.x += this.xSpeed;
+
+    this.calculateAngles(mouseX, mouseY);
+    this.calculateMovementType(keys);
+    this.genericUpdate(isGameStarted, isGameOver);
+  }
+
+  calculateSlowdown(collisions, keys, onLand) {
     if (this.lives <= 0 || (!keys.A && !keys.D)) {
       if (collisions.bottom) {
         this.xSpeed *= 1 - PLAYER_DRAG;
@@ -212,11 +311,7 @@ export default class Player extends GenericPlayer {
         this.xSpeed *= 1 - PLAYER_DRAG / 8;
       }
     }
-
     if (Math.abs(this.xSpeed) < 0.1) this.xSpeed = 0;
-
-    this.isTouchingGround = collisions.bottom && this.ySpeed === 0;
-
     this.ySpeed = Math.min(this.ySpeed + PLAYER_GRAVITY, PLAYER_MAX_Y_SPEED);
     if (collisions.bottom && this.ySpeed > 0) {
       this.y = collisions.bottom.y - PLAYER_HEIGHT;
@@ -238,12 +333,6 @@ export default class Player extends GenericPlayer {
       this.x = collisions.left.x + collisions.left.width;
       this.xSpeed = 0;
     }
-    this.y += this.ySpeed;
-    this.x += this.xSpeed;
-
-    this.calculateAngles(mouseX, mouseY);
-    this.calculateMovementType(keys);
-    this.genericUpdate(isGameStarted, isGameOver);
   }
 
   calculateAngles(mouseX, mouseY) {
@@ -327,13 +416,18 @@ export default class Player extends GenericPlayer {
   }
 
   shoot(onShoot) {
-    this.gunRecoilForce = 0.32;
-    this.gunRecoilReturn = -0.04;
-    this.armRecoilForce = 0.4;
-    this.armRecoilReturn = 0;
-    this.armRecoilDelay = 2;
-    this.gunCooldown = PLAYER_SHOOT_COOLDOWN;
-    onShoot(this.getGunBarrelX(), this.getGunBarrelY(), this.angle);
+    if (this.bulletsLeft > 0) {
+      this.bulletsLeft -= 1;
+      this.gunRecoilForce = 0.32;
+      this.gunRecoilReturn = -0.04;
+      this.armRecoilForce = 0.4;
+      this.armRecoilReturn = 0;
+      this.armRecoilDelay = 2;
+      this.gunCooldown = PLAYER_SHOOT_COOLDOWN;
+      onShoot(this.getGunBarrelX(), this.getGunBarrelY(), this.angle);
+    } else {
+      // TODO: Empty gun click sound
+    }
   }
 
   calculateCollisions(platforms) {
@@ -342,10 +436,10 @@ export default class Player extends GenericPlayer {
     const left = this.x;
     const right = this.x + PLAYER_WIDTH;
     const collisions = {
-      bottom: false,
-      top: false,
-      right: false,
-      left: false,
+      bottom: null,
+      top: null,
+      right: null,
+      left: null,
     };
 
     platforms.forEach(platform => {
