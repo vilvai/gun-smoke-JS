@@ -77,28 +77,30 @@ export class GenericPlayer {
   }
 
   onHit(x, y, angle, random) {
-    this.wounds.push(new Wound(x, y));
-    this.lives -= 1;
-    if (this.lives == 1) this.hat.fly(angle, random);
-    console.log(this.x, this.y);
+    const relativeBulletX = x - this.x;
+    const relativeBulletY = y - this.y;
+    console.log(angle);
+    this.wounds.push(
+      new Wound(this.x, this.y, relativeBulletX, relativeBulletY, angle)
+    );
     console.log(this.wounds);
+    this.lives = 1;
+    if (this.lives == 1) this.hat.fly(angle, random);
   }
 
   update({ x, y, angle, gunRecoil, movementType, isTouchingGround }) {
-    let xChange = this.x - x;
-    let yChange = this.y - y;
     this.x = x;
     this.y = y;
     this.angle = angle;
     this.gunRecoil = gunRecoil;
     this.movementType = movementType;
     this.isTouchingGround = isTouchingGround;
-    this.genericUpdate(xChange, yChange);
+    this.genericUpdate();
   }
 
-  genericUpdate(xChange, yChange) {
+  genericUpdate() {
     this.hat.update(this.x, this.y);
-    this.wounds.forEach(w => w.update(xChange, yChange));
+    this.wounds.forEach(w => w.update(this.x, this.y));
     this.particleSystem.update(
       this.x,
       this.y,
@@ -113,7 +115,7 @@ export class GenericPlayer {
 
     context.fillRect(this.x, this.y, PLAYER_WIDTH, PLAYER_HEIGHT);
     if (this.wounds && this.wounds.length) {
-      this.wounds.forEach(w => w.draw(context));
+      this.wounds.forEach(w => w.draw(context, this.x, this.y));
     }
     this.hat.draw(context);
 
@@ -181,6 +183,7 @@ export default class Player extends GenericPlayer {
       if (keys.R) {
         this.lives = 2;
         this.hat = new Hat(this.x, this.y);
+        this.wounds = [];
       }
       if (keys.E) {
         this.lives -= 1;
@@ -223,7 +226,7 @@ export default class Player extends GenericPlayer {
 
     this.calculateAngles(mouseX, mouseY);
     this.calculateMovementType(keys);
-    this.genericUpdate(this.xSpeed, this.ySpeed);
+    this.genericUpdate();
   }
 
   calculateAngles(mouseX, mouseY) {
