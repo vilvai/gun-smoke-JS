@@ -6,6 +6,7 @@ export default class Platform {
     this.height = height;
     this.hasCollision = collision;
   }
+
   draw(context) {
     context.fillStyle = '#91602f';
     context.fillRect(this.x, this.y, this.width, this.height);

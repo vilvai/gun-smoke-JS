@@ -19,6 +19,8 @@ export const GUN_POSITION_OFFSET_X = -30;
 export const GUN_POSITION_OFFSET_Y = -25;
 export const GUN_RECOIL_CENTER_OFFSET_X = -12;
 export const GUN_RECOIL_CENTER_OFFSET_Y = 5;
+export const GUN_BULLETS = 6;
+export const GUN_RELOAD_TIME = 120;
 
 export const BULLET_SPEED = 25;
 export const BULLET_DROP = 0.1;
@@ -27,3 +29,11 @@ export const HAT_WIDTH = 70;
 export const HAT_HEIGHT = 20;
 
 export const COUNTDOWN = 100;
+
+export const GAME_STATE_LOADING = 'LOADING';
+export const GAME_STATE_LINK = 'LINK';
+export const GAME_STATE_AIM_DOWN = 'AIM_DOWN';
+export const GAME_STATE_READY = 'READY';
+export const GAME_STATE_GAME_STARTED = 'GAME_STARTED';
+export const GAME_STATE_GAME_WON = 'GAME_WON';
+export const GAME_STATE_GAME_LOST = 'GAME_LOST';

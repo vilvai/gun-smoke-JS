@@ -21,17 +21,17 @@ export default class Bullet {
     this.x += this.xSpeed;
     this.y += this.ySpeed;
     if (
-      this.x > GAME_WIDTH ||
-      this.x < 0 ||
-      this.y > GAME_HEIGHT ||
-      this.y < 0
+      this.x > GAME_WIDTH
+      || this.x < 0
+      || this.y > GAME_HEIGHT
+      || this.y < 0
     ) {
       onRemove(this.id);
     } else if (
-      this.x >= playerX &&
-      this.y >= playerY &&
-      this.x <= playerX + PLAYER_WIDTH &&
-      this.y <= playerY + PLAYER_HEIGHT
+      this.x >= playerX
+      && this.y >= playerY
+      && this.x <= playerX + PLAYER_WIDTH
+      && this.y <= playerY + PLAYER_HEIGHT
     ) {
       const angle = -Math.atan2(this.xSpeed, this.ySpeed) + Math.PI / 2;
       onHitPlayer(this.x, this.y, angle, this.id);
@@ -39,11 +39,10 @@ export default class Bullet {
     }
     if (
       platforms.some(
-        platform =>
-          this.x >= platform.x &&
-          this.y >= platform.y &&
-          this.x <= platform.x + platform.width &&
-          this.y <= platform.y + platform.height
+        platform => this.x >= platform.x
+          && this.y >= platform.y
+          && this.x <= platform.x + platform.width
+          && this.y <= platform.y + platform.height
       )
     ) {
       onHitPlatform(this.id);

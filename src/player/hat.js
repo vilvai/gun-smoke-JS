@@ -1,11 +1,4 @@
-import {
-  PLAYER_WIDTH,
-  PLAYER_HEIGHT,
-  HAT_WIDTH,
-  HAT_HEIGHT,
-} from '../constants.js';
-
-const TO_RADIANS = Math.PI / 180;
+import { PLAYER_WIDTH, HAT_WIDTH, HAT_HEIGHT } from '../constants.js';
 
 export default class Hat {
   constructor(x, y) {
@@ -40,6 +33,7 @@ export default class Hat {
   }
 
   draw(context) {
+    const TO_RADIANS = Math.PI / 180;
     context.fillStyle = '#666';
     context.translate(this.x + PLAYER_WIDTH / 2, this.y + HAT_HEIGHT / 2);
     context.rotate(this.angle * TO_RADIANS);

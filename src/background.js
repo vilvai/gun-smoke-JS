@@ -1,21 +1,10 @@
 import backgroundSrc from './images/bak.png';
 import cloudSrc from './images/cloud.png';
 
-function drawImageCenter(image, x, y, cx, cy, ctx) {
-  ctx.setTransform(1, 0, 0, 1, x, y);
-  ctx.drawImage(image, -cx, -cy);
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-}
-
-function getXYfromPolar(theta, r) {
-  return {
-    x: 640 + r * Math.cos(theta),
-    y: 460 + r * Math.sin(theta),
-  };
-}
+import { drawImageCenter, getXYfromPolar } from './utils.js';
 
 export default class Background {
-  constructor(ctx) {
+  constructor() {
     this.night = new Image();
     this.night.src = backgroundSrc;
     this.cloud = new Image();
@@ -28,6 +17,7 @@ export default class Background {
     this.sunY = 360;
     this.sunRising = false;
   }
+
   draw(ctx) {
     ctx.fillStyle = '#F2AB41';
     ctx.fillRect(0, 0, ctx.width, ctx.height);
@@ -63,7 +53,7 @@ export default class Background {
     drawImageCenter(this.cloud, this.cloudX, this.cloudY, 212, 42, ctx);
   }
 
-  //DayCycle()
+  // DayCycle()
 
-  //Wind()
+  // Wind()
 }

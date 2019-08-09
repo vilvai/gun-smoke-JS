@@ -1,118 +1,110 @@
 import React, { Component } from 'react';
 import cx from 'classnames';
 
+import Overlay from './overlay.jsx';
 import Game from './game.js';
+import {
+  GAME_WIDTH,
+  GAME_HEIGHT,
+  GAME_STATE_LOADING,
+  GAME_STATE_LINK,
+  GAME_STATE_AIM_DOWN,
+  GAME_STATE_READY,
+  GAME_STATE_GAME_STARTED,
+  GAME_STATE_GAME_WON,
+  GAME_STATE_GAME_LOST,
+} from './constants.js';
 
 import styles from './styles/app.module.css';
 
-const GAME_STATES = {
-  LOADING: 'LOADING',
-  LINK: 'LINK',
-  READY_SCREEN: 'READY_SCREEN',
-  STANDOFF: 'STANDOFF',
-  GAME_STARTED: 'GAME_STARTED',
-};
-
 export default class App extends Component {
   state = {
-    gameState: GAME_STATES.LOADING,
+    gameState: GAME_STATE_LOADING,
     linkText: null,
-    countdownText: 'Aim down',
-    countdownFade: false,
+    gameStateTextFade: false,
+    ownScore: 0,
+    opponentScore: 0,
+    scorePositionsReversed: false,
   };
 
   componentDidMount() {
-    new Game(
-      this.sketchContainer,
-      this.handleSetLinkText,
-      this.handlePlayerJoined,
-      this.handleStartStandoff,
-      this.handleCountdownTextChange,
-      this.handleStartGame
-    );
+    this.game = new Game(this.sketchContainer, this.handleSetState);
   }
 
-  handleSetLinkText = linkText =>
-    this.setState({
-      gameState: GAME_STATES.LINK,
-      linkText,
-    });
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.gameState !== this.state.gameState) {
+      if (this.state.gameState === GAME_STATE_GAME_WON) {
+        this.setState({ ownScore: this.state.ownScore + 1 });
+      } else if (this.state.gameState === GAME_STATE_GAME_LOST) {
+        this.setState({ opponentScore: this.state.opponentScore + 1 });
+      }
+    }
+  }
 
-  handlePlayerJoined = () =>
-    this.setState({
-      gameState: GAME_STATES.READY_SCREEN,
-    });
+  handleSetState = state => this.setState(state);
 
-  handleStartStandoff = () =>
-    this.setState({
-      gameState: GAME_STATES.STANDOFF,
-    });
-
-  handleCountdownTextChange = countdownText =>
-    this.state.countdownText !== countdownText &&
-    this.setState({
-      countdownText,
-    });
-
-  handleStartGame = () => {
-    this.setState({
-      gameState: GAME_STATES.GAME_STARTED,
-      countdownText: 'Fire!',
-    });
-    setTimeout(() => this.setState({ countdownFade: true }), 2000);
-  };
-
-  renderOverlay() {
-    const { gameState, linkText } = this.state;
+  renderGameStateText() {
+    const { gameState } = this.state;
     switch (gameState) {
-      case GAME_STATES.LOADING:
-        return 'Loading…';
-      case GAME_STATES.LINK:
-        return (
-          <div className={styles.linkContainer}>
-            <span>Share this link with a friend:</span>
-            <span>{linkText}</span>
-          </div>
-        );
-      case GAME_STATES.READY_SCREEN:
-        // Ready screen will go here if it's implemented
-        return null;
+      case GAME_STATE_AIM_DOWN:
+        return 'Aim down';
+      case GAME_STATE_READY:
+        return 'Ready…';
+      case GAME_STATE_GAME_STARTED:
+        return 'Fire!';
+      case GAME_STATE_GAME_WON:
+        return 'You won! Press Enter for a rematch';
+      case GAME_STATE_GAME_LOST:
+        return 'You lost! Press Enter for a rematch';
       default:
         return null;
     }
   }
 
-  renderCountdown() {
-    const { gameState, countdownText, countdownFade } = this.state;
-    if (
-      gameState == GAME_STATES.STANDOFF ||
-      gameState == GAME_STATES.GAME_STARTED
-    )
-      return (
-        <div
-          className={cx(styles.countdown, {
-            [styles.countdownFade]: countdownFade,
-          })}
-        >
-          {countdownText}
-        </div>
-      );
+  renderScore() {
+    const {
+      gameState,
+      ownScore,
+      opponentScore,
+      scorePositionsReversed,
+    } = this.state;
+    if (gameState === GAME_STATE_LOADING || gameState === GAME_STATE_LINK) {
+      return null;
+    }
+    return (
+      <div
+        style={{
+          width: GAME_WIDTH,
+          top: `calc(50% - ${GAME_HEIGHT / 2}px)`,
+          left: `calc(50% - ${GAME_WIDTH / 2}px)`,
+        }}
+        className={cx(styles.scoreContainer, {
+          [styles.scoreReversed]: scorePositionsReversed,
+        })}
+      >
+        <span>{ownScore}</span>
+        <span>{opponentScore}</span>
+      </div>
+    );
   }
 
   render() {
-    const { gameState, countdownText } = this.state;
+    const { gameState, gameStateTextFade, linkText } = this.state;
     return (
       <div>
-        {gameState !== GAME_STATES.STANDOFF &&
-          gameState !== GAME_STATES.GAME_STARTED && (
-            <div className={styles.loadingOverlay}>{this.renderOverlay()}</div>
-          )}
-        {this.renderCountdown()}
+        <Overlay gameState={gameState} linkText={linkText} />
+        <div
+          className={cx(styles.gameStateText, {
+            [styles.gameStateTextFade]: gameStateTextFade,
+          })}
+        >
+          {this.renderGameStateText()}
+        </div>
+        {this.renderScore()}
         <div
           className={cx(styles.sketchContainer, {
             [styles.blurEffect]:
-              gameState !== GAME_STATES.STANDOFF &&
-              gameState !== GAME_STATES.GAME_STARTED,
+              gameState === GAME_STATE_LOADING || gameState === GAME_STATE_LINK,
           })}
           ref={ref => (this.sketchContainer = ref)}
         />

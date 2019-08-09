@@ -6,8 +6,10 @@ import {
 } from './constants.js';
 
 export default class BloodPool {
-  constructor(playerX, playerY, platform) {
+  constructor(x, y, platform) {
     this.platform = platform;
+    this.x = x;
+    this.y = y;
   }
 
   update(x, y) {
