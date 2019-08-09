@@ -5,6 +5,7 @@ import Player, { GenericPlayer } from './player/player.js';
 import Platform from './platform.js';
 import Bullet from './bullet.js';
 import Background from './background.js';
+import BloodPool from './bloodPool.js';
 
 import { setupPeer, connectToHost } from './network/util.js';
 
@@ -38,6 +39,7 @@ const platforms = [
 const background = new Background();
 
 let bullets = [];
+let bloodPools = [];
 
 const getHostId = address => {
   const hrefArray = window.location.href.split('?');
@@ -88,12 +90,19 @@ export const onReceiveData = data => {
       break;
     case 'hit':
       onRemoveBullet(data.bulletId);
-      otherPlayersById[data.playerId].onHit(
-        data.x,
-        data.y,
-        data.angle,
-        data.random
-      );
+      let x = data.x;
+      let y = data.y;
+      otherPlayersById[data.playerId].onHit(x, y, data.angle, data.random);
+      let platform = null;
+      platform = platforms.filter(p => {
+        playerLegs = playerY - PLAYER_HEIGHT;
+        playerX > p.x && playerX < p.x + p.width && p.y + p.height < playerLegs;
+      });
+      console.log(platform);
+      console.log(playerX, p.x, p.x + p.width, p.y + p.height, playerLegs);
+      if (platform) {
+        createBloodPool(x, y, platform);
+      }
       break;
     case 'hitPlatform':
       onRemoveBullet(data.bulletId);
@@ -156,6 +165,10 @@ const onHitPlayer = (x, y, angle, bulletId) => {
 const onHitPlatform = bulletId => {
   onRemoveBullet(bulletId);
   sendData({ type: 'hitPlatform', bulletId });
+};
+
+const createBloodPool = (x, y) => {
+  bloodPools.push(new BloodPool(x, y, platforms));
 };
 
 export const onEndGame = () => {

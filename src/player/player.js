@@ -79,11 +79,9 @@ export class GenericPlayer {
   onHit(x, y, angle, random) {
     const relativeBulletX = x - this.x;
     const relativeBulletY = y - this.y;
-    console.log(angle);
     this.wounds.push(
       new Wound(this.x, this.y, relativeBulletX, relativeBulletY, angle)
     );
-    console.log(this.wounds);
     this.lives = 1;
     if (this.lives == 1) this.hat.fly(angle, random);
   }

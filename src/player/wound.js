@@ -7,15 +7,15 @@ import {
 
 export default class Wound {
   constructor(playerX, playerY, relativeX, relativeY, angle) {
-    playerY = playerY - HAT_HEIGHT;
+    playerY = playerY;
     this.x = playerX + relativeX;
     this.y = playerY + relativeY;
     this.relativeX = relativeX;
     this.relativeY = relativeY;
     this.angle = angle;
-    this.bloodMains = initGore([1, 2], [10, 20], [10, 15], [1, 5], [2, 5]);
+    this.bloodMains = initGore([1, 2], [10, 20], [10, 15], [0, 6], [2, 5]);
     this.bloodSplatters = initGore([3, 4], [1, 4], [5, 30], [10, 20], [1, 4]);
-    this.goreHoles = initGore([0, 2], [2, 6], [2, 6], [1, 5], [0, 5]);
+    this.goreHoles = initGore([0, 2], [2, 6], [2, 6], [1, 6], [0, 5]);
 
     function initGore(
       [stainsMin, stainsMax],
@@ -29,8 +29,8 @@ export default class Wound {
 
       for (let j = 0; j < stain_c; j++) {
         stains.push({
-          x: getRandomArbitrary(xMin, xMax),
-          y: getRandomArbitrary(yMin, yMax),
+          width: getRandomArbitrary(xMin, xMax),
+          height: getRandomArbitrary(yMin, yMax),
           spreadX: getRandomArbitrary(xSpreadMin, xSpreadMax) + j,
           spreadY: getRandomArbitrary(ySpreadMin, ySpreadMax) + j,
         });
@@ -58,29 +58,24 @@ export default class Wound {
     this.goreHoles.forEach(gh => drawGore(this, gh, goreHoleColor, true));
 
     //Draw blood main, splatter and goryholes
-    function drawGore(wound, gore, color, show_overflow = false) {
-      debugger;
-      let x = gore.x;
-      let y = gore.y;
+    function drawGore(wound, woundPart, color, showOverflow = false) {
+      let width = woundPart.width;
+      let height = woundPart.height;
       let angle = wound.angle;
-      let spreadX = wound.x;
-      spreadX =
+      let x =
         angle > -0.2 && angle < 0.32
-          ? spreadX - x + gore.spreadX
-          : spreadX - x - gore.spreadX;
-      let spreadY = wound.y - y + gore.spreadY;
+          ? wound.x + woundPart.spreadX
+          : wound.x - width - woundPart.spreadX;
+      let y = wound.y - height + woundPart.spreadY;
 
       let playerWidth = playerX + PLAYER_WIDTH;
       let playerHeight = playerY + PLAYER_HEIGHT;
       context.fillStyle = color;
       if (
-        show_overflow ||
-        (spreadX > playerX &&
-          spreadX < playerWidth &&
-          spreadY > playerY &&
-          spreadY < playerHeight)
+        showOverflow ||
+        (x > playerX && x < playerWidth && y > playerY && y < playerHeight)
       )
-        context.fillRect(spreadX, spreadY, x, y);
+        context.fillRect(x, y, width, height);
     }
   }
 }
