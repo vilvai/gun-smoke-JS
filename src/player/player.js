@@ -229,23 +229,30 @@ export class GenericPlayer {
   }
 
   drawReloadMarker(context, reloadProgress) {
-    const reloadMarkerWidth = 70;
-    const reloadMarkerHeight = 10;
+    const reloadMarkerRadius = 20;
+    const reloadMarkerWidth = 4;
     const reloadMarkerY = 6;
-    context.fillStyle = '#e0e0e0';
-    context.fillRect(
-      this.x + PLAYER_WIDTH / 2 - reloadMarkerWidth / 2,
-      this.y - reloadMarkerHeight - reloadMarkerY,
-      reloadMarkerWidth,
-      reloadMarkerHeight
+    context.lineWidth = reloadMarkerWidth;
+    context.beginPath();
+    context.arc(
+      this.x + PLAYER_WIDTH / 2,
+      this.y - reloadMarkerRadius - reloadMarkerY,
+      reloadMarkerRadius,
+      0,
+      2 * Math.PI
     );
-    context.fillStyle = '#707070';
-    context.fillRect(
-      this.x + PLAYER_WIDTH / 2 - reloadMarkerWidth / 2,
-      this.y - reloadMarkerHeight - reloadMarkerY,
-      reloadMarkerWidth * reloadProgress,
-      reloadMarkerHeight
+    context.strokeStyle = '#707070';
+    context.stroke();
+    context.beginPath();
+    context.arc(
+      this.x + PLAYER_WIDTH / 2,
+      this.y - reloadMarkerRadius - reloadMarkerY,
+      reloadMarkerRadius,
+      (-1 / 2) * Math.PI,
+      Math.PI * (2 * reloadProgress - 1 / 2)
     );
+    context.strokeStyle = '#e0e0e0';
+    context.stroke();
   }
 }
 
