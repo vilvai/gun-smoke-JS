@@ -39,7 +39,8 @@ export default class Bullet {
     }
     if (
       platforms.some(
-        platform => this.x >= platform.x
+        platform =>
+          this.x >= platform.x
           && this.y >= platform.y
           && this.x <= platform.x + platform.width
           && this.y <= platform.y + platform.height
@@ -51,7 +52,7 @@ export default class Bullet {
 
   draw(context) {
     context.beginPath();
-    context.arc(this.x, this.y, 3, 0, 2 * Math.PI);
+    context.arc(this.x, this.y, 2, 0, 2 * Math.PI);
     context.fillStyle = '#000';
     context.fill();
   }

@@ -1,7 +1,7 @@
 export function drawImageCenter(image, x, y, cx, cy, ctx) {
-  ctx.setTransform(1, 0, 0, 1, x, y);
+  ctx.translate(x, y);
   ctx.drawImage(image, -cx, -cy);
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.translate(-x, -y);
 }
 
 export function getXYfromPolar(theta, r) {
@@ -28,3 +28,14 @@ export const createRandomId = () => {
   }
   return str;
 };
+
+export function resetContextTransform(context) {
+  context.setTransform(
+    context.minScale,
+    0,
+    0,
+    context.minScale,
+    context.xOffset,
+    0
+  );
+}

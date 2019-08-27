@@ -1,4 +1,5 @@
 import { PLAYER_WIDTH, HAT_WIDTH, HAT_HEIGHT } from '../constants.js';
+import { resetContextTransform } from '../utils.js';
 
 export default class Hat {
   constructor(x, y) {
@@ -57,6 +58,6 @@ export default class Hat {
       HAT_WIDTH / 14,
       HAT_HEIGHT / 2
     );
-    context.setTransform(1, 0, 0, 1, 0, 0);
+    resetContextTransform(context);
   }
 }

@@ -73,11 +73,6 @@ export default class App extends Component {
     }
     return (
       <div
-        style={{
-          width: GAME_WIDTH,
-          top: `calc(50% - ${GAME_HEIGHT / 2}px)`,
-          left: `calc(50% - ${GAME_WIDTH / 2}px)`,
-        }}
         className={cx(styles.scoreContainer, {
           [styles.scoreReversed]: scorePositionsReversed,
         })}

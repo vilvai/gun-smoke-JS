@@ -1,20 +1,20 @@
 export const GAME_WIDTH = 1280;
-export const GAME_HEIGHT = 720;
+export const GAME_HEIGHT = 640;
 
-export const PLAYER_HEIGHT = 80;
-export const PLAYER_WIDTH = 40;
-export const PLAYER_ARM_LENGTH = 40;
-export const PLAYER_ARM_WIDTH = 20;
+export const PLAYER_HEIGHT = 60;
+export const PLAYER_WIDTH = 30;
+export const PLAYER_ARM_LENGTH = 30;
+export const PLAYER_ARM_WIDTH = 15;
 
-export const PLAYER_ACCELERATION = 0.5;
+export const PLAYER_ACCELERATION = 0.35;
 export const PLAYER_DRAG = 0.2;
-export const PLAYER_MAX_X_SPEED = 8;
-export const PLAYER_MAX_Y_SPEED = 20;
-export const PLAYER_JUMP_POWER = 14;
-export const PLAYER_GRAVITY = 0.5;
+export const PLAYER_MAX_X_SPEED = 7;
+export const PLAYER_MAX_Y_SPEED = 15;
+export const PLAYER_JUMP_POWER = 11;
+export const PLAYER_GRAVITY = 0.4;
 export const PLAYER_SHOOT_COOLDOWN = 20;
 
-export const GUN_SIZE = 0.7;
+export const GUN_SIZE = 0.53;
 export const GUN_POSITION_OFFSET_X = -30;
 export const GUN_POSITION_OFFSET_Y = -25;
 export const GUN_RECOIL_CENTER_OFFSET_X = -12;
@@ -22,11 +22,11 @@ export const GUN_RECOIL_CENTER_OFFSET_Y = 5;
 export const GUN_BULLETS = 6;
 export const GUN_RELOAD_TIME = 120;
 
-export const BULLET_SPEED = 25;
-export const BULLET_DROP = 0.1;
+export const BULLET_SPEED = 24;
+export const BULLET_DROP = 0.09;
 
-export const HAT_WIDTH = 70;
-export const HAT_HEIGHT = 20;
+export const HAT_WIDTH = 53;
+export const HAT_HEIGHT = 15;
 
 export const COUNTDOWN = 100;
 

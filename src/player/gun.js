@@ -8,6 +8,7 @@ import {
   PLAYER_HEIGHT,
   GAME_WIDTH,
 } from '../constants.js';
+import { resetContextTransform } from '../utils.js';
 
 import gunSrc from '../images/gun_abstract.png';
 
@@ -30,7 +31,7 @@ export default class Gun {
     } else {
       this.drawUnHolsteredGun(context, armEndX, armEndY, angle, gunRecoil);
     }
-    context.setTransform(1, 0, 0, 1, 0, 0);
+    resetContextTransform(context);
   }
 
   drawHolsteredGun(context, playerX, playerY) {

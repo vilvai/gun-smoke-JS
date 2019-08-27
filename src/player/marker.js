@@ -1,4 +1,5 @@
 import { PLAYER_WIDTH } from '../constants.js';
+import { resetContextTransform } from '../utils.js';
 
 const READY = 'READY';
 const NOT_READY = 'NOT_READY';
@@ -21,8 +22,8 @@ export default class Marker {
   }
 
   draw(context, playerX, playerY) {
-    const readyMarkerSize = 15;
-    const readyMarkerPosition = 20;
+    const readyMarkerSize = 11;
+    const readyMarkerPosition = 15;
     context.translate(
       playerX + PLAYER_WIDTH / 2,
       playerY - readyMarkerPosition
@@ -53,7 +54,6 @@ export default class Marker {
       default:
         break;
     }
-
-    context.setTransform(1, 0, 0, 1, 0, 0);
+    resetContextTransform(context);
   }
 }

@@ -23,7 +23,7 @@ export default class Particle {
     context.fillStyle = '#bd9268';
     context.globalAlpha = this.alpha;
     context.beginPath();
-    context.arc(this.x, this.y, this.scale * 9, 0, 2 * Math.PI);
+    context.arc(this.x, this.y, this.scale * 7, 0, 2 * Math.PI);
     context.fill();
     context.globalAlpha = 1;
   }

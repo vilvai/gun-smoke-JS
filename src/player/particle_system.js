@@ -28,7 +28,7 @@ export default class ParticleSystem {
           playerX
             + PLAYER_WIDTH / 2
             + direction * PLAYER_WIDTH * (0.5 + Math.random() / 2),
-          playerY + PLAYER_HEIGHT - 10 - Math.random() * 20,
+          playerY + PLAYER_HEIGHT - 8 - Math.random() * 15,
           direction * (2 + Math.random() * 2),
           4 + Math.random() * 4
         )
@@ -38,7 +38,7 @@ export default class ParticleSystem {
 
   createLandParticles(playerX, playerY, ySpeed) {
     const force = ySpeed ** 2;
-    const landingParticleCount = Math.floor(force / 40);
+    const landingParticleCount = Math.floor(force / 30);
     for (
       let direction = -0.99;
       direction < 0.99;
@@ -49,9 +49,9 @@ export default class ParticleSystem {
           playerX
             + PLAYER_WIDTH / 2
             + direction * PLAYER_WIDTH * (0.5 + Math.random() / 2),
-          playerY + PLAYER_HEIGHT + 10 - Math.random() * 20,
-          direction * (2 + Math.random() * 2),
-          (-force / 40) * (0.5 + Math.random())
+          playerY + PLAYER_HEIGHT + 8 - Math.random() * 15,
+          direction * (1.5 + Math.random() * 1.5),
+          (-force / 30) * (0.5 + Math.random())
         )
       );
     }
@@ -83,11 +83,11 @@ export default class ParticleSystem {
       new Particle(
         playerX
           + (direction === -1
-            ? PLAYER_WIDTH - Math.random() * 10
-            : Math.random() * 10),
+            ? PLAYER_WIDTH - Math.random() * 8
+            : Math.random() * 8),
         playerY + PLAYER_HEIGHT,
-        -direction * 5,
-        -1 - Math.random() * 4
+        -direction * 4,
+        -1 - Math.random() * 3
       )
     );
     if (

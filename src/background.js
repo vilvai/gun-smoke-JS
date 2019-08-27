@@ -20,12 +20,17 @@ export default class Background {
 
   draw(ctx) {
     ctx.fillStyle = '#F2AB41';
-    ctx.fillRect(0, 0, ctx.width, ctx.height);
+    ctx.fillRect(
+      -ctx.xOffset / ctx.minScale,
+      0,
+      ctx.width / ctx.minScale,
+      ctx.height / ctx.minScale
+    );
 
     this.drawSun(ctx);
     this.drawClouds(ctx);
 
-    drawImageCenter(this.night, ctx.width / 2, ctx.height / 2, 640, 360, ctx);
+    ctx.drawImage(this.night, 0, 0);
   }
 
   drawSun(ctx) {

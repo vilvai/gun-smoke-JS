@@ -41,24 +41,21 @@ export default class Game {
     this.background = new Background();
     this.platforms = [
       // bounding box
-      new Platform(0, 670, 1280, 100, true), // floor
+      new Platform(-10000, 530, 20000, 10000, true), // floor
       new Platform(0, -50, 1280, 50, true), // ceiling
-      new Platform(-50, 0, 50, 720, true), // left wall
-      new Platform(1280, 0, 50, 720, true), // right wall
+      new Platform(-10000, 0, 10000, 720, true), // left wall
+      new Platform(1280, 0, 10000, 720, true), // right wall
 
       // platforms
-      new Platform(340, 490, 600, 30, false),
-      new Platform(0, 320, 150, 30, false),
-      new Platform(1130, 320, 150, 30, false),
-      new Platform(390, 310, 500, 30, false),
+      new Platform(340, 400, 600, 25, false),
+      new Platform(0, 210, 150, 25, false),
+      new Platform(1130, 210, 150, 25, false),
+      new Platform(390, 270, 500, 25, false),
     ];
     this.bullets = [];
 
     const ctx = Sketch.create({
       container,
-      width: GAME_WIDTH,
-      height: GAME_HEIGHT,
-      fullscreen: false,
       autopause: false,
       eventTarget: document,
     });
@@ -110,7 +107,16 @@ export default class Game {
     ctx.mousedown = () => (this.mouseClicked = true);
 
     ctx.update = () => {
-      this.updatePlayers(ctx.keys, ctx.mouse);
+      const contextWidthScale = ctx.width / GAME_WIDTH;
+      const contextHeightScale = ctx.height / GAME_HEIGHT;
+      ctx.minScale = Math.min(contextWidthScale, contextHeightScale);
+      const scaleDifference = contextWidthScale - contextHeightScale;
+      ctx.xOffset = Math.max(scaleDifference, 0) * GAME_WIDTH * 0.5;
+      this.updatePlayers(
+        ctx.keys,
+        (ctx.mouse.x - ctx.xOffset) / ctx.minScale,
+        ctx.mouse.y / ctx.minScale
+      );
       this.updateBullets();
       this.checkCountdown();
       this.checkGameOver();
@@ -119,6 +125,7 @@ export default class Game {
     };
 
     ctx.draw = () => {
+      ctx.setTransform(ctx.minScale, 0, 0, ctx.minScale, ctx.xOffset, 0);
       this.background.draw(ctx);
       this.platforms.forEach(platform => platform.draw(ctx));
       this.bullets.forEach(bullet => bullet.draw(ctx));
@@ -128,13 +135,13 @@ export default class Game {
     };
   }
 
-  updatePlayers = (keys, mouse) => {
+  updatePlayers = (keys, mouseX, mouseY) => {
     if (this.player) {
       this.player.update(
         keys,
         this.platforms,
-        mouse.x,
-        mouse.y,
+        mouseX,
+        mouseY,
         this.mouseClicked,
         this.isGameStarted,
         this.isGameOver,

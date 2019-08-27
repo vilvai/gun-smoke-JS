@@ -229,9 +229,9 @@ export class GenericPlayer {
   }
 
   drawReloadMarker(context, reloadProgress) {
-    const reloadMarkerRadius = 20;
-    const reloadMarkerWidth = 4;
-    const reloadMarkerY = 6;
+    const reloadMarkerRadius = 15;
+    const reloadMarkerWidth = 3;
+    const reloadMarkerY = 4;
     context.lineWidth = reloadMarkerWidth;
     context.beginPath();
     context.arc(
@@ -442,6 +442,10 @@ export default class Player extends GenericPlayer {
     const top = this.y;
     const left = this.x;
     const right = this.x + PLAYER_WIDTH;
+    const futureYSpeed = Math.min(
+      this.ySpeed + PLAYER_GRAVITY,
+      PLAYER_MAX_Y_SPEED
+    );
     const collisions = {
       bottom: null,
       top: null,
@@ -453,16 +457,16 @@ export default class Player extends GenericPlayer {
       if (
         platform.x < right
         && left < platform.x + platform.width
-        && platform.y <= bottom + this.ySpeed
-        && bottom + this.ySpeed <= platform.y + platform.height
+        && platform.y <= bottom + futureYSpeed
+        && bottom + futureYSpeed <= platform.y + platform.height
         && platform.y >= bottom
       ) collisions.bottom = platform;
 
       if (
         platform.x < right
         && left < platform.x + platform.width
-        && top + this.ySpeed <= platform.y + platform.height
-        && platform.y <= top + this.ySpeed
+        && top + futureYSpeed <= platform.y + platform.height
+        && platform.y <= top + futureYSpeed
         && platform.hasCollision
       ) collisions.top = platform;
 
