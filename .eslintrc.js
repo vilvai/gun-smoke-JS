@@ -51,5 +51,6 @@ module.exports = {
     'no-plusplus': ['error', { allowForLoopAfterthoughts: true }],
     'jsx-a11y/mouse-events-have-key-events': 0,
     'react/prop-types': 0,
+    'no-mixed-operators': 0,
   },
 };

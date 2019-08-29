@@ -15,7 +15,7 @@ import {
 import Player, { GenericPlayer } from './player/player.js';
 import Platform from './platform.js';
 import Bullet from './bullet.js';
-import Background from './background.js';
+import Background from './background/background.js';
 
 import { setupPeer, connectToHost } from './network/util.js';
 import { getHostId, createRandomId } from './utils.js';
@@ -112,6 +112,7 @@ export default class Game {
       ctx.minScale = Math.min(contextWidthScale, contextHeightScale);
       const scaleDifference = contextWidthScale - contextHeightScale;
       ctx.xOffset = Math.max(scaleDifference, 0) * GAME_WIDTH * 0.5;
+      this.background.update();
       this.updatePlayers(
         ctx.keys,
         (ctx.mouse.x - ctx.xOffset) / ctx.minScale,
@@ -182,7 +183,7 @@ export default class Game {
       ));
   };
 
-  updateBullets = () =>
+  updateBullets = () => {
     this.bullets.forEach(bullet =>
       bullet.update(
         this.onRemoveBullet,
@@ -192,6 +193,8 @@ export default class Game {
         this.player.y,
         this.platforms
       ));
+    this.bullets = this.bullets.filter(bullet => bullet.removeTimer !== 0);
+  };
 
   checkCountdown = () => {
     if (!this.isGameStarted && this.player) {
@@ -271,10 +274,14 @@ export default class Game {
   };
 
   onRemoveBullet = bulletId => {
-    this.bullets = this.bullets.filter(bullet => bullet.id !== bulletId);
+    const bulletToBeRemoved = this.bullets.find(
+      bullet => bullet.id === bulletId
+    );
+    bulletToBeRemoved.setToBeRemoved();
   };
 
   onHitPlayer = (angle, bulletId) => {
+    this.onRemoveBullet(bulletId);
     const random = Math.random();
     this.player.onHit(angle, random, this.gameOver);
     this.sendData({

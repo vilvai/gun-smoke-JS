@@ -1,9 +1,3 @@
-export function drawImageCenter(image, x, y, cx, cy, ctx) {
-  ctx.translate(x, y);
-  ctx.drawImage(image, -cx, -cy);
-  ctx.translate(-x, -y);
-}
-
 export function getXYfromPolar(theta, r) {
   return {
     x: 640 + r * Math.cos(theta),

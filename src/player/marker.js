@@ -30,7 +30,6 @@ export default class Marker {
     );
 
     context.lineWidth = readyMarkerSize * 0.7;
-    // context.lineCap = 'round';
     switch (this.type) {
       case READY:
         context.strokeStyle = 'green';

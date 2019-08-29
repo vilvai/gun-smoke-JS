@@ -6,6 +6,8 @@ import {
   PLAYER_MAX_X_SPEED,
   PLAYER_MAX_Y_SPEED,
   PLAYER_JUMP_POWER,
+  PLAYER_JUMP_SLOWDOWN,
+  PLAYER_DROP_SPEED,
   PLAYER_GRAVITY,
   PLAYER_ARM_LENGTH,
   PLAYER_ARM_WIDTH,
@@ -287,8 +289,9 @@ export default class Player extends GenericPlayer {
     if (isGameStarted && this.lives > 0) {
       if (keys.D) this.moveRight(collisions);
       else if (keys.A) this.moveLeft(collisions);
-      if (keys.W) this.jump(collisions, onJump);
+      if (keys.W || keys.SPACE) this.jump(collisions, onJump);
       else if (keys.S) this.drop(collisions);
+      else this.jumpReleased();
       if (mouseClicked && this.gunCooldown <= 0 && !this.isReloading) {
         this.shoot(onShoot);
       }
@@ -322,7 +325,7 @@ export default class Player extends GenericPlayer {
     this.ySpeed = Math.min(this.ySpeed + PLAYER_GRAVITY, PLAYER_MAX_Y_SPEED);
     if (collisions.bottom && this.ySpeed > 0) {
       this.y = collisions.bottom.y - PLAYER_HEIGHT;
-      if (this.ySpeed > 5 && !keys.W) {
+      if (this.ySpeed > 5 && (!keys.W || keys.SPACE)) {
         onLand(this.x, this.y, this.ySpeed);
         this.createLandParticles(this.x, this.y, this.ySpeed);
       }
@@ -419,7 +422,14 @@ export default class Player extends GenericPlayer {
       collisions.bottom
       && !collisions.bottom.hasCollision
       && this.ySpeed === 0
-    ) collisions.bottom = false;
+    ) {
+      collisions.bottom = false;
+      this.ySpeed = PLAYER_DROP_SPEED;
+    }
+  }
+
+  jumpReleased() {
+    if (this.ySpeed < 0) this.ySpeed *= PLAYER_JUMP_SLOWDOWN;
   }
 
   shoot(onShoot) {
